@@ -18,16 +18,6 @@ export default function Header() {
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
         {/* Left: Logo + Name */}
         <div className="flex items-center space-x-2">
-          <svg width="24" height="18" viewBox="0 0 26 20" aria-hidden="true">
-            <path
-              d="M2 10c3-6 19-6 22 0"
-              stroke="#6366F1"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
-            />
-            <circle cx="13" cy="10" r="3" fill="#6366F1" />
-          </svg>
           <span className="font-semibold text-gray-900 text-lg">
             CMD UnliFiberMax
           </span>
