@@ -32,4 +32,13 @@ body {
   .btn-ghost {
     @apply h-10 px-4 rounded-lg border border-gray-200 bg-white hover:border-gray-300;
   }
+  .icon-chip {
+    background: rgb(0 51 160 / 0.06);
+    color: var(--color-cmd-blue);
+  }
+
+  .card-title {
+    color: var(--color-cmd-blue);
+    font-weight: 600;
+  }
 }
