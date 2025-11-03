@@ -193,7 +193,7 @@ type Billing = {
   payments: Payment[];
 };
 
-function BillingPageImpl() {
+function BillingsPage() {
   const router = useRouter();
 
   const [tab, setTab] = useState<"bills" | "payments">("bills");
@@ -456,4 +456,4 @@ function BillingPageImpl() {
   );
 }
 
-export default dynamic(() => Promise.resolve(BillingPageImpl), { ssr: false });
+export default dynamic(() => Promise.resolve(BillingsPage), { ssr: false });
