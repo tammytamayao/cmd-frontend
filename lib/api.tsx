@@ -44,3 +44,20 @@ export async function fetchPayments(token?: string | null, year?: number) {
   if (!res.ok) throw new Error(`payments fetch failed: ${res.status}`);
   return res.json(); // { data, meta }
 }
+
+export async function fetchOpenOrOverdueBillings(token?: string | null) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  // API will handle filtering using the controller's `status` param
+  const url = new URL(`${API_BASE}/api/v1/billings`);
+  url.searchParams.set("status", "open,overdue"); // Rails controller must handle comma-separated values
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) throw new Error(`billings fetch failed: ${res.status}`);
+  return res.json();
+}
