@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
-import { fetchBillings, fetchPayments } from "@/lib/api";
+import { fetchBillings, fetchPayments, fetchCurrentUser } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 
 // --- tiny UI primitives ---
@@ -192,6 +192,15 @@ type Billing = {
   status: string;
   payments: Payment[];
 };
+type Me = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  plan: string;
+  brate: number;
+  serial_number: string;
+};
 
 function BillingsPage() {
   const router = useRouter();
@@ -204,6 +213,25 @@ function BillingsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [token] = useState<string | null>(() => getToken());
+  const [me, setMe] = useState<Me | null>(null);
+
+  // fetch current subscriber (me)
+  useEffect(() => {
+    if (!token) return;
+    let alive = true;
+    (async () => {
+      try {
+        const data = await fetchCurrentUser(token);
+        if (!alive) return;
+        setMe(data as Me);
+      } catch (e) {
+        // ignore; me remains null
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [token]);
 
   const loading =
     !!token &&
@@ -245,6 +273,20 @@ function BillingsPage() {
 
   const bills = useMemo(() => billings ?? [], [billings]);
 
+  const handleMakePayment = () => {
+    // Prefer serial_number for human-friendly lookups; fallback to ID.
+    const subscriber = (me?.id && String(me.id)) || "";
+
+    if (!subscriber) {
+      alert("Missing subscriber info. Please try reloading the page.");
+      return;
+    }
+
+    const qs = new URLSearchParams({ subscriber });
+
+    router.push(`/payment?${qs.toString()}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -257,9 +299,8 @@ function BillingsPage() {
 
           {!notLoggedIn && (
             <button
-              className="h-11 px-5 sm:px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium w-full sm:w-auto"
-              onClick={() => router.push("/pay")}
-              aria-label="Make a Payment"
+              onClick={handleMakePayment}
+              className="mt-5 sm:mt-0 h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
             >
               Make a Payment
             </button>
