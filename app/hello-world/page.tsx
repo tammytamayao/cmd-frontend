@@ -8,7 +8,7 @@ export default function HelloWorld() {
       fontSize: '2rem',
       fontWeight: 'bold'
     }}>
-      <h1>Hello World - Test 1</h1>
+      <h1>Hello World - Test 2</h1>
     </div>
   )
 }
