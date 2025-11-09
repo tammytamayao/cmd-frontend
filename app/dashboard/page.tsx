@@ -2,20 +2,83 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import FieldRow from "../components/ui/FieldRow";
 import ActionCard from "../components/ui/ActionCard";
 import { IconReceipt, IconHistory, IconSupport } from "../components/ui/Icons";
-import { getToken } from "@/lib/auth";
+import { getToken, clearToken } from "@/lib/auth";
+import { fetchCurrentUser } from "@/lib/api";
+
+type Me = {
+  id: number;
+  first_name: string;
+  last_name: string;
+  full_name: string;
+  phone_number: string;
+  plan: string;
+  brate: number;
+  package_speed: number;
+  serial_number: string;
+  amount_due: number;
+  due_on: string; // ISO date
+};
 
 function DashboardInner() {
   const router = useRouter();
-
+  const [me, setMe] = useState<Me | null>(null);
+  const [loading, setLoading] = useState(true);
   const token = typeof window !== "undefined" ? getToken() : null;
-  if (!token) {
-    router.replace("/login");
-    return null;
+
+  useEffect(() => {
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+    (async () => {
+      try {
+        const data = await fetchCurrentUser(token);
+        setMe(data);
+      } catch {
+        // token invalid/expired
+        clearToken();
+        router.replace("/login");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [token, router]);
+
+  if (!token) return null;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100">
+        <Header />
+        <main className="mx-auto max-w-7xl px-6 py-10">
+          <div className="card p-6">Loading your dashboard…</div>
+        </main>
+      </div>
+    );
   }
+
+  if (!me) return null;
+
+  const amountDue = (me.amount_due ?? 0).toFixed(2);
+
+  // --- Always show the 14th of the same month/year as me.due_on ---
+  // If backend sends any date within the target month, we pin display to the 14th.
+  const dueDate = (() => {
+    if (!me.due_on) return "";
+    const base = new Date(me.due_on);
+    // year, month from backend; day forced to 14
+    const fourteenth = new Date(base.getFullYear(), base.getMonth(), 14);
+    return fourteenth.toLocaleDateString("en-PH", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  })();
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -27,11 +90,13 @@ function DashboardInner() {
               <div>
                 <p className="text-sm text-blue-600 mb-1">Amount Due</p>
                 <p className="text-5xl sm:text-6xl font-extrabold tracking-tight">
-                  ₱2299.00
+                  ₱{amountDue}
                 </p>
-                <p className="text-sm text-orange-600 mt-3">
-                  Due by 30 Nov 2025
-                </p>
+                {dueDate && (
+                  <p className="text-sm text-orange-600 mt-3">
+                    Due by {dueDate}
+                  </p>
+                )}
               </div>
               <button className="mt-5 sm:mt-0 h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium">
                 Make a Payment
@@ -65,24 +130,26 @@ function DashboardInner() {
               <div className="card p-6">
                 <h3 className="text-xl font-semibold mb-2">Current Plan</h3>
                 <hr />
-                <FieldRow label="Plan Name" value="H" />
-                <FieldRow label="Speed" value="Up to 320 Mbps" />
-                <FieldRow label="Monthly Rate" value="₱2299.00" />
-                {/* <button className="w-full mt-4 h-10 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium">
-                  {" "}
-                  View Plan Details{" "}
-                </button> */}
+                <FieldRow label="Plan Name" value={me.plan} />
+                <FieldRow
+                  label="Speed"
+                  value={`Up to ${me.package_speed} Mbps`}
+                />
+                <FieldRow
+                  label="Monthly Rate"
+                  value={`₱${(me.brate ?? 0).toFixed(2)}`}
+                />
               </div>
 
               <div className="card p-6">
                 <h3 className="text-xl font-semibold mb-2">Account Details</h3>
                 <hr />
-                <FieldRow label="Customer" value="Princess Connie Tamayao" />
-                <FieldRow label="Account Number" value="105959-210" copyable />
-                {/* <button className="w-full mt-4 h-10 rounded-xl bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-medium">
-                  {" "}
-                  View Plan Details{" "}
-                </button> */}
+                <FieldRow label="Customer" value={me.full_name} />
+                <FieldRow
+                  label="Account Number"
+                  value={me.serial_number}
+                  copyable
+                />
               </div>
             </div>
           </aside>
