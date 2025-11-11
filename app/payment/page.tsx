@@ -81,10 +81,16 @@ export default function PaymentPage() {
     : "—";
 
   // QR + payee/reference
-  // You can wire these to your own assets or params if you like.
-  const qrUrl = "/gcash-qr-placeholder.png";
-  const payeeName = "CMD UnliFiberMax";
-  const reference = "09123456789";
+  const qrUrl = "/gcash-qr-placeholder.png"; // still used for Bank Transfer if you have a bank QR
+  const bankDetails = {
+    bank_name: "BPI",
+    account_name: "CMD UnliFiberMax",
+    account_no: "1234 5678 90",
+  };
+
+  // For GCash bill payment
+  const gcashBillerName = "CMD Cable Vision Inc";
+  const reference = me?.serial_number ?? "09123456789";
 
   // Receipt upload state
   const [file, setFile] = useState<File | null>(null);
@@ -122,7 +128,6 @@ export default function PaymentPage() {
     (async () => {
       try {
         setBillingsLoading(true);
-        // Controller should accept comma-separated statuses
         const url = new URL(`${API_BASE}/api/v1/billings`);
         url.searchParams.set("status", "open,overdue");
 
@@ -149,7 +154,7 @@ export default function PaymentPage() {
         } else {
           setBillingId(null);
         }
-      } catch (e) {
+      } catch {
         if (!alive) return;
         setBillings([]);
         setBillingId(null);
@@ -229,13 +234,12 @@ export default function PaymentPage() {
       if (file) form.append("receipt", file);
 
       if (method === "GCASH") {
-        form.append("payee_name", payeeName);
-        form.append("gcash_number", reference);
+        form.append("payee_name", gcashBillerName);
+        form.append("gcash_reference", reference);
       } else if (method === "BANK_TRANSFER") {
-        // if you have static details for bank transfer, include here
-        form.append("bank_name", "BPI");
-        form.append("account_name", "CMD UnliFiberMax");
-        form.append("account_no", "1234 5678 90");
+        form.append("bank_name", bankDetails.bank_name);
+        form.append("account_name", bankDetails.account_name);
+        form.append("account_no", bankDetails.account_no);
       }
 
       // 🔌 Post to Rails. Example route:
@@ -251,14 +255,14 @@ export default function PaymentPage() {
       // Optional: reset or redirect
       // setFile(null);
       // router.replace("/billing");
-    } catch (e) {
+    } catch {
       setError("Submission failed. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const showQR = method === "GCASH" || method === "BANK_TRANSFER";
+  const showBankQR = method === "BANK_TRANSFER";
 
   // ===== Auth gate UI =====
   if (authLoading) {
@@ -294,9 +298,6 @@ export default function PaymentPage() {
             {/* LEFT: Payment Form */}
             <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
-                  1
-                </span>
                 <h2 className="text-lg font-semibold text-gray-900">
                   Payment Form
                 </h2>
@@ -331,8 +332,7 @@ export default function PaymentPage() {
                   </div>
                 </div>
 
-                {/* Editable: Billing Period (from open/overdue list) */}
-                {/* Editable: Billing Period */}
+                {/* Billing Period (compact dropdown) */}
                 <div>
                   <label
                     htmlFor="billingPeriod"
@@ -360,7 +360,7 @@ export default function PaymentPage() {
                   />
                 </div>
 
-                {/* Editable: Payment Method */}
+                {/* Payment Method (compact dropdown) */}
                 <div>
                   <label
                     htmlFor="paymentMethod"
@@ -389,32 +389,35 @@ export default function PaymentPage() {
                     authorized collector. Uploading a receipt is optional for
                     Cash, but helps speed up verification.
                   </div>
+                ) : method === "GCASH" ? (
+                  <div className="rounded-lg bg-blue-50 text-blue-800 text-sm px-4 py-3">
+                    You selected <b>GCash Bills Pay</b>. Follow the steps on the
+                    right to pay via <b>{gcashBillerName}</b>, then upload your
+                    receipt (required).
+                  </div>
                 ) : (
                   <div className="rounded-lg bg-blue-50 text-blue-800 text-sm px-4 py-3">
-                    You selected{" "}
-                    <b>{method === "GCASH" ? "GCash" : "Bank Transfer"}</b>.
-                    Scan the QR on the right and complete the payment, then
-                    upload your receipt (required).
+                    You selected <b>Bank Transfer</b>. Scan the QR and complete
+                    the payment, then upload your receipt (required).
                   </div>
                 )}
               </div>
             </section>
 
-            {/* RIGHT: QR (only for GCASH or BANK_TRANSFER) + Upload + Submit Payment */}
+            {/* RIGHT: Contextual panel */}
             <div className="space-y-6">
-              {showQR && (
+              {/* BANK TRANSFER: QR + bank details */}
+              {showBankQR && (
                 <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm text-center">
                   <h2 className="text-lg font-semibold text-gray-900">
-                    {method === "GCASH"
-                      ? "Scan to Pay (GCash)"
-                      : "Scan to Pay (Bank Transfer)"}
+                    Scan to Pay (Bank Transfer)
                   </h2>
 
                   <div className="mt-4 grid place-items-center">
                     <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                       <Image
                         src={qrUrl}
-                        alt="Payment QR Code"
+                        alt="Bank Transfer QR Code"
                         width={220}
                         height={220}
                         className="rounded-lg"
@@ -422,68 +425,135 @@ export default function PaymentPage() {
                     </div>
                   </div>
 
-                  {/* Details */}
                   <div className="mt-4 w-full max-w-sm mx-auto rounded-lg bg-gray-50 border border-gray-200 p-3 text-left">
                     <div className="grid gap-2 text-sm">
-                      {method === "BANK_TRANSFER" && (
-                        <>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <div className="text-xs text-gray-500">Bank</div>
-                              <div className="font-medium text-gray-900">
-                                BPI
-                              </div>
-                            </div>
-                            <div>
-                              <div className="text-xs text-gray-500">
-                                Account Name
-                              </div>
-                              <div className="font-medium text-gray-900">
-                                CMD UnliFiberMax
-                              </div>
-                            </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="text-xs text-gray-500">Bank</div>
+                          <div className="font-medium text-gray-900">
+                            {bankDetails.bank_name}
                           </div>
-                          <div>
-                            <div className="text-xs text-gray-500">
-                              Account Number
-                            </div>
-                            <div className="font-mono text-sm text-gray-900">
-                              1234 5678 90
-                            </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500">
+                            Account Name
                           </div>
-                        </>
-                      )}
-                      {method === "GCASH" && (
-                        <>
-                          <div>
-                            <div className="text-xs text-gray-500">Payee</div>
-                            <div className="font-medium text-gray-900">
-                              {payeeName}
-                            </div>
+                          <div className="font-medium text-gray-900">
+                            {bankDetails.account_name}
                           </div>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="text-xs text-gray-500">
-                                GCash Number
-                              </div>
-                              <div className="font-mono text-sm text-gray-900">
-                                {reference}
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500">
+                          Account Number
+                        </div>
+                        <div className="font-mono text-sm text-gray-900">
+                          {bankDetails.account_no}
+                        </div>
+                      </div>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* GCASH: step-by-step instructions */}
+              {method === "GCASH" && (
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Pay via GCash Bills Pay
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Use the steps below to pay your bill directly in the GCash
+                    app. Then upload a screenshot of the successful transaction.
+                  </p>
+
+                  <ol className="mt-4 space-y-3 text-sm text-gray-800">
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        1
+                      </span>
+                      <span>
+                        Login to your <b>GCash</b> account.
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        2
+                      </span>
+                      <span>
+                        Tap <b>Bills</b>.
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        3
+                      </span>
+                      <span>
+                        Search for <b>{gcashBillerName}</b> and tap it.
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        4
+                      </span>
+                      <span>
+                        Fill out the required fields then press <b>Next</b>
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        5
+                      </span>
+                      <span>
+                        Confirm payment then <b>Download Image Receipt</b>
+                      </span>
+                    </li>
+                  </ol>
+
+                  <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-3 text-sm">
+                    <div className="grid gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Biller</span>
+                        <span className="font-medium text-gray-900">
+                          {gcashBillerName}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">
+                          Subscriber/Account No.
+                        </span>
+                        <span className="font-mono text-gray-900">
+                          {reference}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Amount</span>
+                        <span className="font-medium text-gray-900">
+                          ₱{Number(amount || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* CASH: simple reminder */}
+              {method === "CASH" && (
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Cash Payment Instructions
+                  </h2>
+                  <p className="text-sm text-gray-700 mt-2">
+                    Please pay at our office or to an authorized collector. Keep
+                    the receipt and upload a photo here to speed up
+                    verification.
+                  </p>
                 </div>
               )}
 
               {/* Confirm + Upload + Submit Payment */}
               <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden self-start">
                 <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
-                    2
-                  </span>
                   <h2 className="text-lg font-semibold text-gray-900">
                     Confirm Your Payment
                   </h2>
