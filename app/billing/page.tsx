@@ -178,7 +178,7 @@ type Payment = {
   id: string | number;
   payment_date: string;
   amount: number;
-  method: string;
+  payment_method: string;
   status: string;
   attachment?: string | null;
   reference_number?: string | null;
@@ -437,7 +437,7 @@ function BillingsPage() {
                               {formatDate(p.payment_date)}
                             </p>
                             <p className="text-sm text-gray-500 mt-0.5">
-                              {p.method || "-"} • Ref:{" "}
+                              {p.payment_method || "-"} • Ref:{" "}
                               {p.reference_number || "-"}
                             </p>
                           </div>
@@ -458,8 +458,7 @@ function BillingsPage() {
                       <thead className="bg-gray-50 text-gray-600">
                         <tr className="[&>th]:text-left [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
                           <th className="w-[30%]">Payment Date</th>
-                          <th className="w-[15%]">Amount</th>
-                          <th className="w-[20%]">Method</th>
+                          <th className="w-[20%]">payment_method</th>
                           <th className="w-[15%]">Status</th>
                           <th className="w-[20%]">Reference #</th>
                         </tr>
@@ -470,10 +469,9 @@ function BillingsPage() {
                             <td className="text-gray-900">
                               {formatDate(p.payment_date)}
                             </td>
-                            <td className="text-gray-900">
-                              {formatCurrency(p.amount)}
+                            <td className="text-gray-700">
+                              {p.payment_method}
                             </td>
-                            <td className="text-gray-700">{p.method}</td>
                             <td>
                               <Badge tone={paymentTone(p.status)}>
                                 {titleCase(p.status)}
