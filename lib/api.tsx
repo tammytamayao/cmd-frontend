@@ -7,6 +7,7 @@ const API_BASE =
 export async function fetchCurrentUser(token?: string | null) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
+  // Keep your existing endpoint:
   const res = await fetch(`${API_BASE}/api/v1/session/me`, {
     headers: { Authorization: `Bearer ${t}` },
     cache: "no-store",
@@ -49,9 +50,8 @@ export async function fetchOpenOrOverdueBillings(token?: string | null) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
 
-  // API will handle filtering using the controller's `status` param
   const url = new URL(`${API_BASE}/api/v1/billings`);
-  url.searchParams.set("status", "open,overdue"); // Rails controller must handle comma-separated values
+  url.searchParams.set("status", "open,overdue");
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${t}` },
@@ -60,4 +60,20 @@ export async function fetchOpenOrOverdueBillings(token?: string | null) {
 
   if (!res.ok) throw new Error(`billings fetch failed: ${res.status}`);
   return res.json();
+}
+
+/** Helper to create a payment (used by the payment page) */
+export async function createPayment(form: FormData, token?: string | null) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+  const res = await fetch(`${API_BASE}/api/v1/payments`, {
+    method: "POST",
+    body: form,
+    headers: { Authorization: `Bearer ${t}` },
+  });
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    throw new Error(`payment create failed: ${res.status} ${txt}`);
+  }
+  return res.json(); // { data }
 }
