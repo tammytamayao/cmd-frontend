@@ -1,4 +1,3 @@
-// app/billing/page.tsx
 "use client";
 
 import dynamic from "next/dynamic";
@@ -7,6 +6,13 @@ import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import { fetchBillings, fetchPayments, fetchCurrentUser } from "@/lib/api";
 import { getToken } from "@/lib/auth";
+import {
+  formatCurrency,
+  formatDate,
+  normalizeBillingStatus,
+  paymentTone,
+  titleCase,
+} from "@/lib/helpers";
 
 // --- tiny UI primitives ---
 function Badge({
@@ -142,35 +148,6 @@ function YearDropdown({
       )}
     </div>
   );
-}
-
-// --- helpers ---
-function formatCurrency(n: number) {
-  return n.toLocaleString("en-PH", { style: "currency", currency: "PHP" });
-}
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-PH", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-function normalizeBillingStatus(s: string): "paid" | "overdue" | "unpaid" {
-  const lower = s.toLowerCase();
-  if (lower === "open" || lower === "unpaid") return "unpaid";
-  if (lower === "overdue") return "overdue";
-  if (lower === "closed" || lower === "paid") return "paid";
-  return "paid";
-}
-function paymentTone(status: string): "green" | "red" | "gray" {
-  const lower = status.toLowerCase();
-  if (lower === "confirmed") return "green";
-  if (lower === "processing") return "gray";
-  if (lower === "failed") return "red";
-  return "gray";
-}
-function titleCase(s: string) {
-  return s.slice(0, 1).toUpperCase() + s.slice(1).toLowerCase();
 }
 
 // --- types ---
