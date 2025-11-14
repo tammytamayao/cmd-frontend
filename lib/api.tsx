@@ -1,8 +1,26 @@
-// lib/api.ts
 import { getToken } from "@/lib/auth";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
+
+export async function login(phone: string, password: string) {
+  const resp = await fetch(`${API_BASE}/api/v1/sessions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone_number: phone, password }),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    throw new Error(data.error || "Login failed");
+  }
+
+  if (!data?.token) {
+    throw new Error("No token returned from server.");
+  }
+
+  return data; // expected { token, ... }
+}
 
 export async function fetchCurrentUser(token?: string | null) {
   const t = token ?? getToken();
@@ -28,7 +46,7 @@ export async function fetchBillings(token?: string | null, year?: number) {
   });
 
   if (!res.ok) throw new Error(`billings fetch failed: ${res.status}`);
-  return res.json(); // { data, meta }
+  return res.json();
 }
 
 export async function fetchPayments(token?: string | null, year?: number) {
@@ -43,7 +61,7 @@ export async function fetchPayments(token?: string | null, year?: number) {
   });
 
   if (!res.ok) throw new Error(`payments fetch failed: ${res.status}`);
-  return res.json(); // { data, meta }
+  return res.json();
 }
 
 export async function fetchOpenOrOverdueBillings(token?: string | null) {
@@ -62,7 +80,6 @@ export async function fetchOpenOrOverdueBillings(token?: string | null) {
   return res.json();
 }
 
-/** Helper to create a payment (used by the payment page) */
 export async function createPayment(form: FormData, token?: string | null) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -75,5 +92,5 @@ export async function createPayment(form: FormData, token?: string | null) {
     const txt = await res.text().catch(() => "");
     throw new Error(`payment create failed: ${res.status} ${txt}`);
   }
-  return res.json(); // { data }
+  return res.json();
 }

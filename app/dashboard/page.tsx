@@ -21,7 +21,7 @@ type Me = {
   package_speed: number;
   serial_number: string;
   amount_due: number;
-  due_on: string; // ISO date
+  due_on: string;
 };
 
 function DashboardInner() {
@@ -73,10 +73,8 @@ function DashboardInner() {
     });
   })();
 
-  // 👇 define a handler for payment redirection
   const handleMakePayment = () => {
     router.push(`/payment?subscriber=${me.id}`);
-    // or use me.id if your backend uses numeric IDs instead
   };
 
   return (
