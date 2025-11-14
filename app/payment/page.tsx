@@ -231,8 +231,8 @@ export default function PaymentPage() {
       await createPayment(form, token);
       alert("Payment submitted for verification. Thank you!");
       // Optional: reset UI
-      // setFile(null);
-      // router.replace("/billing");
+      setFile(null);
+      router.replace("/billing");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Submission failed.");
     } finally {
