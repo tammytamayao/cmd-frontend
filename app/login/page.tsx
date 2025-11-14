@@ -3,9 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { saveToken } from "@/lib/auth";
-
-const API_BASE =
-  process.env.NEXT_PUBLIC_RAILS_API_BASE ?? "http://localhost:3000";
+import { login } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,27 +24,12 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      const resp = await fetch(`${API_BASE}/api/v1/sessions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone_number: phone, password }),
-      });
-
-      const data = await resp.json().catch(() => ({}));
-      if (!resp.ok) {
-        setErr(data.error || "Login failed");
-        return;
-      }
-
-      if (!data?.token) {
-        setErr("No token returned from server.");
-        return;
-      }
+      const data = await login(phone, password);
 
       saveToken(data.token);
       router.push("/dashboard");
-    } catch {
-      setErr("Network error. Please try again.");
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Login failed");
     } finally {
       setLoading(false);
     }
