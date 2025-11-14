@@ -21,7 +21,7 @@ type Me = {
   package_speed: number;
   serial_number: string;
   amount_due: number;
-  due_on: string; // ISO date
+  due_on: string;
 };
 
 function DashboardInner() {
@@ -40,7 +40,6 @@ function DashboardInner() {
         const data = await fetchCurrentUser(token);
         setMe(data);
       } catch {
-        // token invalid/expired
         clearToken();
         router.replace("/login");
       } finally {
@@ -50,7 +49,6 @@ function DashboardInner() {
   }, [token, router]);
 
   if (!token) return null;
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100">
@@ -61,17 +59,12 @@ function DashboardInner() {
       </div>
     );
   }
-
   if (!me) return null;
 
   const amountDue = (me.amount_due ?? 0).toFixed(2);
-
-  // --- Always show the 14th of the same month/year as me.due_on ---
-  // If backend sends any date within the target month, we pin display to the 14th.
   const dueDate = (() => {
     if (!me.due_on) return "";
     const base = new Date(me.due_on);
-    // year, month from backend; day forced to 14
     const fourteenth = new Date(base.getFullYear(), base.getMonth(), 14);
     return fourteenth.toLocaleDateString("en-PH", {
       day: "2-digit",
@@ -79,6 +72,10 @@ function DashboardInner() {
       year: "numeric",
     });
   })();
+
+  const handleMakePayment = () => {
+    router.push(`/payment?subscriber=${me.id}`);
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -98,11 +95,17 @@ function DashboardInner() {
                   </p>
                 )}
               </div>
-              <button className="mt-5 sm:mt-0 h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium">
+
+              {/* 👇 updated button */}
+              <button
+                onClick={handleMakePayment}
+                className="mt-5 sm:mt-0 h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+              >
                 Make a Payment
               </button>
             </div>
 
+            {/* Quick Actions */}
             <div>
               <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
@@ -125,6 +128,7 @@ function DashboardInner() {
             </div>
           </section>
 
+          {/* Sidebar */}
           <aside className="lg:col-span-4">
             <div className="grid gap-6">
               <div className="card p-6">
