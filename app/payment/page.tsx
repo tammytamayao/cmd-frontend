@@ -90,10 +90,15 @@ export default function PaymentPage() {
   const gcashBillerName = "CMD Cable Vision Inc";
   const reference = me?.serial_number ?? "09123456789";
 
-  // Receipt upload state (optional; backend ignores for now)
+  // Receipt upload state
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const receiptRequired =
+    payment_method === "GCASH" || payment_method === "BANK_TRANSFER";
+
+  const submitDisabled = submitting || !billingId || (receiptRequired && !file);
 
   // ===== Auth + Me =====
   useEffect(() => {
@@ -160,7 +165,7 @@ export default function PaymentPage() {
     };
   }, [token]);
 
-  // ===== File upload utils (optional) =====
+  // ===== File upload utils =====
   const accept = useMemo(
     () => ["image/png", "image/jpeg", "application/pdf"],
     []
@@ -203,6 +208,10 @@ export default function PaymentPage() {
       setError("Please select a billing period to pay.");
       return;
     }
+    if (receiptRequired && !file) {
+      setError("Please upload your payment receipt before submitting.");
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -225,12 +234,11 @@ export default function PaymentPage() {
         form.append("account_name", bankDetails.account_name);
         form.append("account_no", bankDetails.account_no);
       }
-      // Optional: still send the file; API ignores for now
+
       if (file) form.append("receipt", file);
 
       await createPayment(form, token);
       alert("Payment submitted for verification. Thank you!");
-      // Optional: reset UI
       setFile(null);
       router.replace("/billing");
     } catch (e) {
@@ -364,18 +372,21 @@ export default function PaymentPage() {
                 {payment_method === "CASH" ? (
                   <div className="rounded-lg bg-amber-50 text-amber-900 text-sm px-4 py-3">
                     You selected <b>Cash</b>. Please pay at our office or to an
-                    authorized collector. Uploading a receipt is optional.
+                    authorized collector. Uploading a receipt is <b>optional</b>
+                    .
                   </div>
                 ) : payment_method === "GCASH" ? (
                   <div className="rounded-lg bg-blue-50 text-blue-800 text-sm px-4 py-3">
                     You selected <b>GCash Bills Pay</b>. Follow the steps on the
-                    right to pay via <b>{gcashBillerName}</b>. Upload is
-                    optional for now.
+                    right to pay via <b>{gcashBillerName}</b>. Uploading a
+                    screenshot of your successful transaction is <b>required</b>
+                    .
                   </div>
                 ) : (
                   <div className="rounded-lg bg-blue-50 text-blue-800 text-sm px-4 py-3">
                     You selected <b>Bank Transfer</b>. Scan the QR and complete
-                    the payment. Upload is optional for now.
+                    the payment. Uploading a proof of payment is <b>required</b>
+                    .
                   </div>
                 )}
               </div>
@@ -523,7 +534,7 @@ export default function PaymentPage() {
                   <p className="text-sm text-gray-700 mt-2">
                     Please pay at our office or to an authorized collector. Keep
                     the receipt and upload a photo here to speed up
-                    verification.
+                    verification. Upload is optional for cash payments.
                   </p>
                 </div>
               )}
@@ -537,8 +548,9 @@ export default function PaymentPage() {
                 </div>
                 <div className="p-6">
                   <p className="text-sm text-gray-600 mb-4">
-                    Uploading a receipt is optional for now; you can still
-                    submit without it.
+                    {receiptRequired
+                      ? "Please upload your payment receipt to submit your payment."
+                      : "Uploading a receipt is optional; you can still submit without it."}
                   </p>
 
                   {/* Actual (hidden) file input, associated via id/htmlFor */}
@@ -572,6 +584,12 @@ export default function PaymentPage() {
                       </p>
                       <p className="text-xs text-gray-500">
                         PNG, JPG, or PDF (max. 5MB)
+                        {receiptRequired && (
+                          <span className="font-semibold text-red-500">
+                            {" "}
+                            • Required
+                          </span>
+                        )}
                       </p>
                     </div>
                   </label>
@@ -595,7 +613,7 @@ export default function PaymentPage() {
 
                   <button
                     onClick={onSubmitPayment}
-                    disabled={submitting || !billingId}
+                    disabled={submitDisabled}
                     className="mt-4 w-full h-12 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {submitting ? "Submitting..." : "Submit Payment"}
