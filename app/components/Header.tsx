@@ -16,6 +16,7 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
+        {/* Logo + Home */}
         <div
           className="flex items-center space-x-2 cursor-pointer"
           onClick={() => router.push("/dashboard")}
@@ -27,15 +28,21 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden sm:flex items-center gap-6 text-sm">
-          <a className="font-medium text-gray-900" href="/dashboard">
+          <a
+            className="font-medium text-gray-900 hover:text-indigo-600"
+            href="/dashboard"
+          >
             Dashboard
           </a>
-          <a className="text-gray-600 hover:text-gray-900" href="/billing">
-            Billing
+
+          <a className="text-gray-600 hover:text-indigo-600" href="/billing">
+            Bills & Payments
           </a>
-          <a className="text-gray-600 hover:text-gray-900" href="/support">
+
+          <a className="text-gray-600 hover:text-indigo-600" href="/support">
             Support
           </a>
+
           <button
             onClick={handleLogout}
             className="ml-3 text-sm font-medium text-red-600 hover:text-red-700"
@@ -66,33 +73,37 @@ export default function Header() {
           menuOpen ? "max-h-60" : "max-h-0"
         }`}
       >
-        {/* Mobile Dropdown Menu */}
-        <div
-          id="mobile-menu"
-          className={`sm:hidden overflow-hidden transition-[max-height] duration-300 border-t border-gray-200 ${
-            menuOpen ? "max-h-60" : "max-h-0"
-          }`}
-        >
-          <div className="px-6 py-3 bg-white">
-            <a
-              className="block py-2 text-sm font-medium text-gray-900"
-              href="/dashboard"
-            >
-              Dashboard
-            </a>
-            <a className="block py-2 text-sm text-gray-700" href="/billing">
-              Billing
-            </a>
-            <a className="block py-2 text-sm text-gray-700" href="/support">
-              Support
-            </a>
-            <button
-              onClick={handleLogout}
-              className="mt-2 block w-full text-left py-2 text-sm font-medium text-red-600 hover:text-red-700"
-            >
-              Logout
-            </button>
-          </div>
+        <div className="px-6 py-3 bg-white">
+          <a
+            className="block py-2 text-sm font-medium text-gray-900"
+            href="/dashboard"
+            onClick={() => setMenuOpen(false)}
+          >
+            Dashboard
+          </a>
+
+          <a
+            className="block py-2 text-sm text-gray-700"
+            href="/billing"
+            onClick={() => setMenuOpen(false)}
+          >
+            Bills & Payments
+          </a>
+
+          <a
+            className="block py-2 text-sm text-gray-700"
+            href="/support"
+            onClick={() => setMenuOpen(false)}
+          >
+            Support
+          </a>
+
+          <button
+            onClick={handleLogout}
+            className="mt-2 block w-full text-left py-2 text-sm font-medium text-red-600 hover:text-red-700"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </header>

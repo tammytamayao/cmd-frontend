@@ -110,14 +110,9 @@ function DashboardInner() {
               <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
                 <ActionCard
-                  title="View Bill Details"
-                  subtitle="See a full breakdown"
+                  title="View All Transactions"
+                  subtitle="Review past billings & payments"
                   icon={<IconReceipt />}
-                />
-                <ActionCard
-                  title="Payment History"
-                  subtitle="Review past payments"
-                  icon={<IconHistory />}
                 />
                 <ActionCard
                   title="Get Support"

@@ -135,7 +135,7 @@ function BillingsPage() {
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-5 py-6 sm:py-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
-            Billing &amp; Payment History
+            Billings &amp; Payments History
           </h1>
 
           {!notLoggedIn && (
@@ -157,7 +157,7 @@ function BillingsPage() {
             <div className="mt-4 sm:mt-5 flex flex-row flex-wrap items-center gap-3">
               <Segmented
                 options={[
-                  { label: "Bills", value: "bills" },
+                  { label: "Billings", value: "bills" },
                   { label: "Payments", value: "payments" },
                 ]}
                 value={tab}
