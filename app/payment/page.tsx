@@ -182,7 +182,7 @@ export default function PaymentPage() {
       }
       setFile(f);
     },
-    [accept]
+    [accept, maxBytes]
   );
 
   const onDrop = useCallback(
