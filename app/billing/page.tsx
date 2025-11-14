@@ -59,7 +59,6 @@ function BillingsPage() {
   const [token] = useState<string | null>(() => getToken());
   const [me, setMe] = useState<Me | null>(null);
 
-  // fetch current subscriber (me)
   useEffect(() => {
     if (!token) return;
     let alive = true;
@@ -118,7 +117,6 @@ function BillingsPage() {
   const bills = useMemo(() => billings ?? [], [billings]);
 
   const handleMakePayment = () => {
-    // Prefer serial_number for human-friendly lookups; fallback to ID.
     const subscriber = (me?.id && String(me.id)) || "";
 
     if (!subscriber) {
