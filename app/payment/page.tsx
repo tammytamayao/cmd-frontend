@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useId } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Header from "../components/Header";
@@ -48,6 +48,7 @@ function formatRangeLabel(startISO: string, endISO: string) {
 
 export default function PaymentPage() {
   const router = useRouter();
+  const fileInputId = useId();
 
   // ===== Auth gate =====
   const [token] = useState<string | null>(() =>
@@ -432,7 +433,100 @@ export default function PaymentPage() {
                 </div>
               )}
 
-              {/* CASH/GCASH panels omitted for brevity—UI stays same */}
+              {/* GCASH: step-by-step instructions */}
+              {payment_method === "GCASH" && (
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Pay via GCash Bills Pay
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Use the steps below to pay your bill directly in the GCash
+                    app. Then upload a screenshot of the successful transaction.
+                  </p>
+
+                  <ol className="mt-4 space-y-3 text-sm text-gray-800">
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        1
+                      </span>
+                      <span>
+                        Login to your <b>GCash</b> account.
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        2
+                      </span>
+                      <span>
+                        Tap <b>Bills</b>.
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        3
+                      </span>
+                      <span>
+                        Search for <b>{gcashBillerName}</b> and tap it.
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        4
+                      </span>
+                      <span>
+                        Fill out the required fields then press <b>Next</b>
+                      </span>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                        5
+                      </span>
+                      <span>
+                        Confirm payment then <b>Download Image Receipt</b>
+                      </span>
+                    </li>
+                  </ol>
+
+                  <div className="mt-4 rounded-lg bg-gray-50 border border-gray-200 p-3 text-sm">
+                    <div className="grid gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Biller</span>
+                        <span className="font-medium text-gray-900">
+                          {gcashBillerName}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">
+                          Subscriber/Account No.
+                        </span>
+                        <span className="font-mono text-gray-900">
+                          {reference}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Amount</span>
+                        <span className="font-medium text-gray-900">
+                          ₱{Number(amount || 0).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* CASH: simple reminder */}
+              {payment_method === "CASH" && (
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Cash Payment Instructions
+                  </h2>
+                  <p className="text-sm text-gray-700 mt-2">
+                    Please pay at our office or to an authorized collector. Keep
+                    the receipt and upload a photo here to speed up
+                    verification.
+                  </p>
+                </div>
+              )}
 
               {/* Confirm + Upload + Submit Payment */}
               <section className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden self-start">
@@ -447,17 +541,21 @@ export default function PaymentPage() {
                     submit without it.
                   </p>
 
+                  {/* Actual (hidden) file input, associated via id/htmlFor */}
+                  <input
+                    id={fileInputId}
+                    type="file"
+                    accept={accept.join(",")}
+                    className="sr-only"
+                    onChange={(e) => onFiles(e.target.files)}
+                  />
+
                   <label
+                    htmlFor={fileInputId}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={onDrop}
                     className="mt-2 grid place-items-center h-44 rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
                   >
-                    <input
-                      type="file"
-                      accept={accept.join(",")}
-                      className="hidden"
-                      onChange={(e) => onFiles(e.target.files)}
-                    />
                     <div className="flex flex-col items-center gap-2 text-center">
                       <div className="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center">
                         <svg
