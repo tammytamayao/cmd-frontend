@@ -19,13 +19,12 @@ export async function login(phone: string, password: string) {
     throw new Error("No token returned from server.");
   }
 
-  return data; // expected { token, ... }
+  return data;
 }
 
 export async function fetchCurrentUser(token?: string | null) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
-  // Keep your existing endpoint:
   const res = await fetch(`${API_BASE}/api/v1/session/me`, {
     headers: { Authorization: `Bearer ${t}` },
     cache: "no-store",

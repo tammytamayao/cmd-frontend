@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import FieldRow from "../components/ui/FieldRow";
 import ActionCard from "../components/ui/ActionCard";
-import { IconReceipt, IconHistory, IconSupport } from "../components/ui/Icons";
+import { IconReceipt, IconSupport } from "../components/ui/Icons";
 import { getToken, clearToken } from "@/lib/auth";
 import { fetchCurrentUser } from "@/lib/api";
 
@@ -22,6 +22,8 @@ type Me = {
   serial_number: string;
   amount_due: number;
   due_on: string;
+  zone: string;
+  date_installed: string; // ISO date string from API
 };
 
 function DashboardInner() {
@@ -49,6 +51,7 @@ function DashboardInner() {
   }, [token, router]);
 
   if (!token) return null;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100">
@@ -59,14 +62,26 @@ function DashboardInner() {
       </div>
     );
   }
+
   if (!me) return null;
 
   const amountDue = (me.amount_due ?? 0).toFixed(2);
+
   const dueDate = (() => {
     if (!me.due_on) return "";
     const base = new Date(me.due_on);
     const fourteenth = new Date(base.getFullYear(), base.getMonth(), 14);
     return fourteenth.toLocaleDateString("en-PH", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  })();
+
+  const installedOn = (() => {
+    if (!me.date_installed) return "";
+    const d = new Date(me.date_installed);
+    return d.toLocaleDateString("en-PH", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -82,7 +97,23 @@ function DashboardInner() {
       <Header />
       <main className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid lg:grid-cols-12 gap-6">
-          <section className="space-y-6 lg:col-span-8">
+          {/* 1️⃣ Account Details – first on mobile */}
+          <div className="lg:col-span-4 order-1 lg:order-1">
+            <div className="card p-6">
+              <h3 className="text-xl font-semibold mb-2">Account Details</h3>
+              <hr />
+              <FieldRow label="Customer" value={me.full_name} />
+              <FieldRow
+                label="Account Number"
+                value={me.serial_number}
+                copyable
+              />
+              <FieldRow label="Zone" value={me.zone} />
+            </div>
+          </div>
+
+          {/* 2️⃣ Amount Due – second on mobile */}
+          <div className="lg:col-span-8 order-2 lg:order-1">
             <div className="card p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-blue-600 mb-1">Amount Due</p>
@@ -96,7 +127,6 @@ function DashboardInner() {
                 )}
               </div>
 
-              {/* 👇 updated button */}
               <button
                 onClick={handleMakePayment}
                 className="mt-5 sm:mt-0 h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
@@ -104,54 +134,44 @@ function DashboardInner() {
                 Make a Payment
               </button>
             </div>
+          </div>
 
-            {/* Quick Actions */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
-                <ActionCard
-                  title="View All Transactions"
-                  subtitle="Review past billings & payments"
-                  icon={<IconReceipt />}
-                />
-                <ActionCard
-                  title="Get Support"
-                  subtitle="Contact our team"
-                  icon={<IconSupport />}
-                />
-              </div>
+          {/* 3️⃣ Current Plan – third on mobile */}
+          <div className="lg:col-span-4 order-3 lg:order-2">
+            <div className="card p-6">
+              <h3 className="text-xl font-semibold mb-2">Current Plan</h3>
+              <hr />
+              <FieldRow label="Plan Name" value={me.plan} />
+              <FieldRow
+                label="Speed"
+                value={`Up to ${me.package_speed} Mbps`}
+              />
+              <FieldRow
+                label="Monthly Rate"
+                value={`₱${(me.brate ?? 0).toFixed(2)}`}
+              />
+              {installedOn && (
+                <FieldRow label="Installed On" value={installedOn} />
+              )}
             </div>
-          </section>
+          </div>
 
-          {/* Sidebar */}
-          <aside className="lg:col-span-4">
-            <div className="grid gap-6">
-              <div className="card p-6">
-                <h3 className="text-xl font-semibold mb-2">Current Plan</h3>
-                <hr />
-                <FieldRow label="Plan Name" value={me.plan} />
-                <FieldRow
-                  label="Speed"
-                  value={`Up to ${me.package_speed} Mbps`}
-                />
-                <FieldRow
-                  label="Monthly Rate"
-                  value={`₱${(me.brate ?? 0).toFixed(2)}`}
-                />
-              </div>
-
-              <div className="card p-6">
-                <h3 className="text-xl font-semibold mb-2">Account Details</h3>
-                <hr />
-                <FieldRow label="Customer" value={me.full_name} />
-                <FieldRow
-                  label="Account Number"
-                  value={me.serial_number}
-                  copyable
-                />
-              </div>
+          {/* 4️⃣ Quick Actions – always last */}
+          <div className="lg:col-span-8 order-4 lg:order-2">
+            <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
+              <ActionCard
+                title="View All Transactions"
+                subtitle="Review past billings & payments"
+                icon={<IconReceipt />}
+              />
+              <ActionCard
+                title="Get Support"
+                subtitle="Contact our team"
+                icon={<IconSupport />}
+              />
             </div>
-          </aside>
+          </div>
         </div>
       </main>
     </div>
