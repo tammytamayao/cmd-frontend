@@ -93,3 +93,23 @@ export async function createPayment(form: FormData, token?: string | null) {
   }
   return res.json();
 }
+
+// 🔹 NEW: admin / staff login
+export async function adminLogin(email: string, password: string) {
+  const resp = await fetch(`${API_BASE}/api/admin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    throw new Error(data.error || "Admin login failed");
+  }
+
+  if (!data?.token) {
+    throw new Error("No token returned from server.");
+  }
+
+  return data;
+}
