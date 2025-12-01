@@ -1,4 +1,5 @@
 import { getToken } from "@/lib/auth";
+import { AdminSubscriber } from "./types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
@@ -114,7 +115,6 @@ export async function adminLogin(email: string, password: string) {
   return data;
 }
 
-// Admin: fetch subscribers dashboard
 export async function fetchAdminSubscribers(page = 1, token?: string | null) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -148,20 +148,3 @@ export async function fetchAdminSubscribers(page = 1, token?: string | null) {
     };
   };
 }
-
-export type AdminSubscriber = {
-  id: number;
-  serial_number: string | null;
-  first_name: string | null;
-  last_name: string | null;
-  phone_number: string | null;
-  zone: string | null;
-  plan: string | null;
-  brate: number | null;
-  package: number | null;
-  package_speed: number | null;
-  date_installed: Date | null;
-  latest_billing_amount: number | null;
-  latest_billing_due_date: string | null;
-  latest_billing_status: string | null;
-};

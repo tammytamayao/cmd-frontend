@@ -1,9 +1,10 @@
-// app/admin/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getToken, clearToken } from "@/lib/auth";
+import { getToken } from "@/lib/auth";
+import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
+import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
+import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
@@ -34,13 +35,6 @@ type Payment = {
     mime_type: string | null;
     uploaded_at: string | null;
   };
-};
-
-type PaginationMeta = {
-  page: number;
-  per_page: number;
-  total: number;
-  total_pages: number;
 };
 
 function formatDate(dateStr: string | null): string {
@@ -74,8 +68,6 @@ function statusBadgeClasses(status: string): string {
 }
 
 export default function AdminPaymentsPage() {
-  const router = useRouter();
-
   const [payments, setPayments] = useState<Payment[] | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
@@ -110,9 +102,6 @@ export default function AdminPaymentsPage() {
     load();
   }, [page]);
 
-  const canPrev = meta ? meta.page > 1 : false;
-  const canNext = meta ? meta.page < meta.total_pages : false;
-
   const filteredPayments = payments?.filter((p) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -122,11 +111,6 @@ export default function AdminPaymentsPage() {
       (p.payment_method || "").toLowerCase().includes(q)
     );
   });
-
-  const handleLogout = () => {
-    clearToken();
-    router.push("/"); // or "/login" if that’s your login route
-  };
 
   if (err) {
     return (
@@ -148,85 +132,13 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-200 bg-white flex flex-col">
-        <div className="flex items-center gap-3 px-5 py-6 border-b border-gray-100">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-indigo-500 to-sky-400 flex items-center justify-center text-white font-semibold">
-            A
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">Admin</div>
-            <div className="text-xs text-gray-500">Billing Department</div>
-          </div>
-        </div>
+      <AdminSidebar active="payments" />
 
-        <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
-          <button
-            type="button"
-            onClick={() => router.push("/admin/subscribers")}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50"
-          >
-            <span>🏠</span>
-            <span>Subscribers</span>
-          </button>
-
-          {/* Payments (current page – highlighted) */}
-          <button
-            type="button"
-            onClick={() => router.push("/admin/payments")}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-medium"
-          >
-            <span>💳</span>
-            <span>Payments</span>
-          </button>
-
-          {/* Billings */}
-          <button
-            type="button"
-            onClick={() => router.push("/admin/billings")}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50"
-          >
-            <span>📄</span>
-            <span>Billings</span>
-          </button>
-
-          {/* Reports */}
-          <button
-            type="button"
-            onClick={() => router.push("/admin/reports")}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50"
-          >
-            <span>📊</span>
-            <span>Reports</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 mt-4"
-          >
-            <span>🚪</span>
-            <span>Logout</span>
-          </button>
-        </nav>
-
-        <div className="px-3 py-4 border-t border-gray-100 text-xs text-gray-400">
-          © {new Date().getFullYear()} CMD
-        </div>
-      </aside>
-
-      {/* Main content */}
       <main className="flex-1 flex flex-col">
-        {/* Top bar */}
-        <header className="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Payment Records
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Review recent payments, statuses, and billing periods.
-            </p>
-          </div>
-        </header>
+        <AdminHeader
+          title="Payment Records"
+          subtitle="Review recent payments, statuses, and billing periods."
+        />
 
         {/* Table */}
         <section className="flex-1 px-8 py-6">
@@ -240,7 +152,6 @@ export default function AdminPaymentsPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     SUBSCRIBER NAME
                   </th>
-
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     BILLING PERIOD
                   </th>
@@ -319,42 +230,7 @@ export default function AdminPaymentsPage() {
               </tbody>
             </table>
 
-            {/* Footer / pagination */}
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 text-xs text-gray-500">
-              <div>
-                {meta && (
-                  <span>
-                    Showing{" "}
-                    <span className="font-medium">
-                      {meta.total === 0
-                        ? 0
-                        : (meta.page - 1) * meta.per_page + 1}
-                    </span>{" "}
-                    to{" "}
-                    <span className="font-medium">
-                      {Math.min(meta.page * meta.per_page, meta.total)}
-                    </span>{" "}
-                    of <span className="font-medium">{meta.total}</span> results
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => canPrev && setPage((p) => p - 1)}
-                  disabled={!canPrev}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed text-xs bg-white hover:bg-gray-50"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => canNext && setPage((p) => p + 1)}
-                  disabled={!canNext}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed text-xs bg-white hover:bg-gray-50"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <Pagination meta={meta} onPageChange={setPage} />
           </div>
         </section>
       </main>
