@@ -1,5 +1,4 @@
 import { getToken } from "@/lib/auth";
-import { AdminSubscriber } from "./types";
 
 const API_BASE =
   process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
@@ -93,58 +92,4 @@ export async function createPayment(form: FormData, token?: string | null) {
     throw new Error(`payment create failed: ${res.status} ${txt}`);
   }
   return res.json();
-}
-
-// 🔹 NEW: admin / staff login
-export async function adminLogin(email: string, password: string) {
-  const resp = await fetch(`${API_BASE}/api/admin/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-
-  const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) {
-    throw new Error(data.error || "Admin login failed");
-  }
-
-  if (!data?.token) {
-    throw new Error("No token returned from server.");
-  }
-
-  return data;
-}
-
-export async function fetchAdminSubscribers(page = 1, token?: string | null) {
-  const t = token ?? getToken();
-  if (!t) throw new Error("no token");
-
-  const url = new URL(`${API_BASE}/api/admin/subscribers`);
-  url.searchParams.set("page", String(page));
-
-  const res = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${t}` },
-    cache: "no-store",
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(data.error || `admin subscribers failed: ${res.status}`);
-  }
-  return data as {
-    stats: {
-      period_start: string;
-      period_end: string;
-      total_revenue: number;
-      total_overdue: number;
-      new_subscribers: number;
-    };
-    data: AdminSubscriber[];
-    meta: {
-      page: number;
-      per_page: number;
-      total: number;
-      total_pages: number;
-    };
-  };
 }
