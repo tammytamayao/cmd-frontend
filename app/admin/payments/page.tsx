@@ -20,6 +20,14 @@ type Payment = {
   billing_period_start: string | null;
   billing_period_end: string | null;
   billing_status: string | null;
+
+  subscriber: {
+    id: number | null;
+    serial_number: string | null;
+    first_name: string | null;
+    last_name: string | null;
+  };
+
   receipt: {
     filename: string | null;
     size: number | null;
@@ -229,54 +237,17 @@ export default function AdminPaymentsPage() {
         {/* Top bar */}
         <header className="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-gray-900">
               Payment Records
             </h1>
             <p className="text-sm text-gray-500 mt-1">
               Review recent payments, statuses, and billing periods.
             </p>
           </div>
-
-          <div className="w-80">
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                🔍
-              </span>
-              <input
-                type="text"
-                placeholder="Search by ID, reference, or method"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-full border border-gray-200 bg-gray-50 pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
-              />
-            </div>
-          </div>
         </header>
 
-        {/* Filters + table */}
+        {/* Table */}
         <section className="flex-1 px-8 py-6">
-          {/* Filters */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <span className="text-gray-500">Filter by:</span>
-
-              <button className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1">
-                <span className="text-gray-600">Payment Status</span>
-                <span className="text-gray-400 text-[10px]">▼</span>
-              </button>
-
-              <button className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1">
-                <span className="text-gray-600">Payment Method</span>
-                <span className="text-gray-400 text-[10px]">▼</span>
-              </button>
-
-              <button className="text-xs text-indigo-600 ml-2">
-                Clear all filters
-              </button>
-            </div>
-          </div>
-
-          {/* Table */}
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
@@ -288,8 +259,12 @@ export default function AdminPaymentsPage() {
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    Payment
+                    Subscriber
                   </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    Serial #
+                  </th>
+
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     Billing Period
                   </th>
@@ -330,13 +305,17 @@ export default function AdminPaymentsPage() {
                     <td className="px-4 py-3 align-middle">
                       <div className="flex flex-col">
                         <span className="font-medium text-gray-900">
-                          Payment #{p.id}
+                          {p.subscriber?.last_name}, {p.subscriber?.first_name}
                         </span>
                         <span className="text-xs text-gray-500">
                           {formatDate(p.payment_date)}
                         </span>
                       </div>
                     </td>
+                    <td className="px-4 py-3 align-middle text-sm text-gray-700">
+                      {p.subscriber?.serial_number || "—"}
+                    </td>
+
                     <td className="px-4 py-3 align-middle text-sm text-gray-700">
                       {p.billing_period_start && p.billing_period_end ? (
                         <>
