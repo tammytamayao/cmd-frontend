@@ -18,6 +18,7 @@ type Me = {
   phone_number: string;
   plan: string;
   brate: number;
+  package: string;
   package_speed: number;
   serial_number: string;
   amount_due: number;
@@ -104,11 +105,11 @@ function DashboardInner() {
               <hr />
               <FieldRow label="Customer" value={me.full_name} />
               <FieldRow
-                label="Account Number"
+                label="Subscriber ID"
                 value={me.serial_number}
                 copyable
               />
-              <FieldRow label="Zone" value={me.zone} />
+              <FieldRow label="Address" value={me.zone} />
             </div>
           </div>
 
@@ -141,7 +142,10 @@ function DashboardInner() {
             <div className="card p-6">
               <h3 className="text-xl font-semibold mb-2">Current Plan</h3>
               <hr />
-              <FieldRow label="Plan Name" value={me.plan} />
+              <FieldRow
+                label="Plan (Package)"
+                value={`${me.plan} (${me.package})`}
+              />
               <FieldRow
                 label="Speed"
                 value={`Up to ${me.package_speed} Mbps`}

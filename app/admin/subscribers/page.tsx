@@ -16,6 +16,17 @@ type Stats = {
   new_subscribers: number;
 };
 
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "N/A";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [subs, setSubs] = useState<AdminSubscriber[] | null>(null);
@@ -112,6 +123,9 @@ export default function AdminDashboardPage() {
                     ADDRESS
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    INSTALLATION DATE
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     PLAN
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
@@ -153,6 +167,10 @@ export default function AdminDashboardPage() {
 
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {s.zone ? `${s.zone}` : "Unknown"}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {s.date_installed ? formatDate(s.date_installed) : "-"}
                     </td>
 
                     <td className="px-4 py-3 text-sm text-gray-900">
