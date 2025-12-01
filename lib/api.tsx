@@ -158,6 +158,9 @@ export type AdminSubscriber = {
   zone: string | null;
   plan: string | null;
   brate: number | null;
+  package: number | null;
+  package_speed: number | null;
+  date_installed: Date | null;
   latest_billing_amount: number | null;
   latest_billing_due_date: string | null;
   latest_billing_status: string | null;
