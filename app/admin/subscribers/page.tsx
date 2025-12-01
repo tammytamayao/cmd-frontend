@@ -21,17 +21,6 @@ type Stats = {
   new_subscribers: number;
 };
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "N/A";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  });
-}
-
 function statusBadgeClasses(status: string | null): string {
   const normalized = (status || "").toLowerCase();
 
@@ -220,19 +209,25 @@ export default function AdminDashboardPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    ACCOUNT ID
+                    SUBSCRIBER ID
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     SUBSCRIBER NAME
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    ADDRESS
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    PLAN
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    PACKAGE
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    PACKAGE SPEED
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     AMOUNT
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    DUE DATE
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    STATUS
                   </th>
                 </tr>
               </thead>
@@ -253,7 +248,7 @@ export default function AdminDashboardPage() {
                     key={s.id}
                     className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}
                   >
-                    {/* Account ID */}
+                    {/* Subscriber ID */}
                     <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
                       {s.serial_number ||
                         `SUB-${String(s.id).padStart(5, "0")}`}
@@ -261,34 +256,34 @@ export default function AdminDashboardPage() {
 
                     {/* Name */}
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {s.first_name || s.last_name
-                        ? `${s.first_name} ${s.last_name}`
-                        : "Unknown"}
+                      {s.last_name}, {s.first_name}
                     </td>
 
+                    {/* Address */}
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {s.zone ? `${s.zone}` : "Unknown"}
+                    </td>
+
+                    {/* Plan */}
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {s.plan ? `${s.plan}` : "Unknown"}
+                    </td>
+
+                    {/* Package */}
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {s.package ? `${s.package}` : "0"}
+                    </td>
+
+                    {/* Package Speed */}
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      Up to {s.package_speed ? `${s.package_speed}` : "0"} mbps
+                    </td>
                     {/* Amount */}
                     <td className="px-4 py-3 text-sm text-gray-900">
                       ₱
-                      {(s.latest_billing_amount ?? s.brate ?? 0).toLocaleString(
-                        "en-PH",
-                        { minimumFractionDigits: 2 }
-                      )}
-                    </td>
-
-                    {/* Due date */}
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {formatDate(s.latest_billing_due_date)}
-                    </td>
-
-                    {/* Status */}
-                    <td className="px-4 py-3 text-sm">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusBadgeClasses(
-                          s.latest_billing_status
-                        )}`}
-                      >
-                        {s.latest_billing_status || "N/A"}
-                      </span>
+                      {(s.brate ?? 0).toLocaleString("en-PH", {
+                        minimumFractionDigits: 2,
+                      })}
                     </td>
                   </tr>
                 ))}

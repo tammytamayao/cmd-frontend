@@ -234,30 +234,24 @@ export default function AdminPaymentsPage() {
             <table className="min-w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="w-10 px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    SUBSCRIBER ID
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    Subscriber
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    Serial #
+                    SUBSCRIBER NAME
                   </th>
 
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    Billing Period
+                    BILLING PERIOD
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    Amount
+                    AMOUNT
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    Payment Method
+                    MODE OF PAYMENT
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    Payment Status
+                    PAYMENT STATUS
                   </th>
                 </tr>
               </thead>
@@ -278,11 +272,8 @@ export default function AdminPaymentsPage() {
                     key={p.id}
                     className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}
                   >
-                    <td className="px-4 py-3 align-middle">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-gray-300"
-                      />
+                    <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
+                      {p.subscriber?.serial_number || "—"}
                     </td>
                     <td className="px-4 py-3 align-middle">
                       <div className="flex flex-col">
@@ -293,9 +284,6 @@ export default function AdminPaymentsPage() {
                           {formatDate(p.payment_date)}
                         </span>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 align-middle text-sm text-gray-700">
-                      {p.subscriber?.serial_number || "—"}
                     </td>
 
                     <td className="px-4 py-3 align-middle text-sm text-gray-700">
