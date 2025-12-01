@@ -161,14 +161,13 @@ export default function AdminPaymentsPage() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
-          {/* Dashboard */}
           <button
             type="button"
-            onClick={() => router.push("/admin/dashboard")}
+            onClick={() => router.push("/admin/subscribers")}
             className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50"
           >
             <span>🏠</span>
-            <span>Dashboard</span>
+            <span>Subscribers</span>
           </button>
 
           {/* Payments (current page – highlighted) */}
@@ -200,8 +199,6 @@ export default function AdminPaymentsPage() {
             <span>📊</span>
             <span>Reports</span>
           </button>
-
-          {/* Logout (NOW directly below Reports) */}
           <button
             type="button"
             onClick={handleLogout}
@@ -215,21 +212,6 @@ export default function AdminPaymentsPage() {
         <div className="px-3 py-4 border-t border-gray-100 text-xs text-gray-400">
           © {new Date().getFullYear()} CMD
         </div>
-
-        {/* Logout */}
-        {/* <div className="px-3 pb-4 border-t border-gray-100">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="mt-3 flex w-full items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 text-sm"
-          >
-            <span>🚪</span>
-            <span>Logout</span>
-          </button>
-          <div className="px-2 pt-3 text-xs text-gray-400">
-            © {new Date().getFullYear()} CMD
-          </div>
-        </div> */}
       </aside>
 
       {/* Main content */}

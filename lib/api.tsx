@@ -113,3 +113,52 @@ export async function adminLogin(email: string, password: string) {
 
   return data;
 }
+
+// Admin: fetch subscribers dashboard
+export async function fetchAdminSubscribers(page = 1, token?: string | null) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const url = new URL(`${API_BASE}/api/admin/subscribers`);
+  url.searchParams.set("page", String(page));
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `admin subscribers failed: ${res.status}`);
+  }
+  return data as {
+    stats: {
+      period_start: string;
+      period_end: string;
+      total_revenue: number;
+      total_overdue: number;
+      new_subscribers: number;
+    };
+    data: AdminSubscriber[];
+    meta: {
+      page: number;
+      per_page: number;
+      total: number;
+      total_pages: number;
+    };
+  };
+}
+
+export type AdminSubscriber = {
+  id: number;
+  serial_number: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone_number: string | null;
+  zone: string | null;
+  plan: string | null;
+  brate: number | null;
+  latest_billing_amount: number | null;
+  latest_billing_due_date: string | null;
+  latest_billing_status: string | null;
+};
