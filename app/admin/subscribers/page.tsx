@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
-import { fetchAdminSubscribers } from "@/lib/api";
+import { fetchAllSubscribers } from "@/lib/api";
 import { AdminSubscriber } from "@/lib/types";
 import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
+import { formatDate } from "@/lib/helpers";
 
 type Stats = {
   period_start: string;
@@ -38,7 +39,7 @@ export default function AdminDashboardPage() {
       }
 
       try {
-        const data = await fetchAdminSubscribers(page, t);
+        const data = await fetchAllSubscribers(page, t);
         if (cancelled) return;
 
         setStats(data.stats);
@@ -112,6 +113,9 @@ export default function AdminDashboardPage() {
                     ADDRESS
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    INSTALLATION DATE
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     PLAN
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
@@ -153,6 +157,10 @@ export default function AdminDashboardPage() {
 
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {s.zone ? `${s.zone}` : "Unknown"}
+                    </td>
+
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {s.date_installed ? formatDate(s.date_installed) : "-"}
                     </td>
 
                     <td className="px-4 py-3 text-sm text-gray-900">

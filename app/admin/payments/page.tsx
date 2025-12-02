@@ -5,9 +5,9 @@ import { getToken } from "@/lib/auth";
 import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
+import { formatDate, statusBadgeClasses } from "@/lib/helpers";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
+import { fetchAllPaymentss } from "@/lib/api";
 
 type Payment = {
   id: number;
@@ -37,37 +37,8 @@ type Payment = {
   };
 };
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "N/A";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  });
-}
-
-function statusBadgeClasses(status: string): string {
-  const normalized = status.toLowerCase();
-
-  if (normalized === "completed" || normalized === "paid") {
-    return "bg-emerald-50 text-emerald-700 ring-emerald-100";
-  }
-  if (normalized === "processing") {
-    return "bg-sky-50 text-sky-700 ring-sky-100";
-  }
-  if (normalized === "overdue") {
-    return "bg-rose-50 text-rose-700 ring-rose-100";
-  }
-  if (normalized === "pending") {
-    return "bg-amber-50 text-amber-700 ring-amber-100";
-  }
-
-  return "bg-gray-50 text-gray-600 ring-gray-100";
-}
-
 export default function AdminPaymentsPage() {
+  const token = getToken();
   const [payments, setPayments] = useState<Payment[] | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
@@ -75,32 +46,25 @@ export default function AdminPaymentsPage() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const t = getToken();
-    if (!t) {
-      setErr("No token found. Please log in as staff.");
-      return;
-    }
+    if (!token) return;
 
-    const load = async () => {
-      try {
-        const url = new URL(`${API_BASE}/api/admin/payments`);
-        url.searchParams.set("page", String(page));
+    let cancelled = false;
 
-        const res = await fetch(url.toString(), {
-          headers: { Authorization: `Bearer ${t}` },
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || `Error: ${res.status}`);
-
-        setPayments(data.data || []);
-        setMeta(data.meta || null);
-      } catch (e) {
+    fetchAllPaymentss(page, token)
+      .then((res) => {
+        if (cancelled) return;
+        setPayments(res.data);
+        setMeta(res.meta);
+      })
+      .catch((e) => {
+        if (cancelled) return;
         setErr(e instanceof Error ? e.message : "Failed to load payments");
-      }
-    };
+      });
 
-    load();
-  }, [page]);
+    return () => {
+      cancelled = true;
+    };
+  }, [page, token]);
 
   const filteredPayments = payments?.filter((p) => {
     if (!search.trim()) return true;
