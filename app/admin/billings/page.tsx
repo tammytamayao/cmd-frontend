@@ -7,16 +7,6 @@ import { getToken, clearToken } from "@/lib/auth";
 
 type BillingCycle = "Monthly" | "Quarterly" | "Yearly";
 
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("en-US", {
-    month: "long",
-    day: "2-digit",
-    year: "numeric",
-  });
-}
-
 export default function AdminBillingsPage() {
   const router = useRouter();
 
@@ -29,8 +19,6 @@ export default function AdminBillingsPage() {
   const [dueDate, setDueDate] = useState<string>(
     new Date().toISOString().slice(0, 10) // YYYY-MM-DD for <input type="date">
   );
-  const [includeResidential, setIncludeResidential] = useState(true);
-  const [includeBusiness, setIncludeBusiness] = useState(true);
 
   const [chargeDescription, setChargeDescription] = useState("");
   const [chargeAmount, setChargeAmount] = useState("");

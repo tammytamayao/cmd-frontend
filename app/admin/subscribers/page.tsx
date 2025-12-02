@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
-import { fetchAdminSubscribers } from "@/lib/api";
+import { fetchAllSubscribers } from "@/lib/api";
 import { AdminSubscriber } from "@/lib/types";
 import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
+import { formatDate } from "@/lib/helpers";
 
 type Stats = {
   period_start: string;
@@ -15,17 +16,6 @@ type Stats = {
   total_overdue: number;
   new_subscribers: number;
 };
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "N/A";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "2-digit",
-    year: "numeric",
-  });
-}
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -49,7 +39,7 @@ export default function AdminDashboardPage() {
       }
 
       try {
-        const data = await fetchAdminSubscribers(page, t);
+        const data = await fetchAllSubscribers(page, t);
         if (cancelled) return;
 
         setStats(data.stats);

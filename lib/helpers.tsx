@@ -2,12 +2,34 @@ export function formatCurrency(n: number) {
   return n.toLocaleString("en-PH", { style: "currency", currency: "PHP" });
 }
 
-export function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-PH", {
+export function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "N/A";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return new Date(dateStr).toLocaleDateString("en-PH", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
+}
+
+export function statusBadgeClasses(status: string): string {
+  const normalized = status.toLowerCase();
+
+  if (normalized === "completed" || normalized === "paid") {
+    return "bg-emerald-50 text-emerald-700 ring-emerald-100";
+  }
+  if (normalized === "processing") {
+    return "bg-sky-50 text-sky-700 ring-sky-100";
+  }
+  if (normalized === "overdue") {
+    return "bg-rose-50 text-rose-700 ring-rose-100";
+  }
+  if (normalized === "pending") {
+    return "bg-amber-50 text-amber-700 ring-amber-100";
+  }
+
+  return "bg-gray-50 text-gray-600 ring-gray-100";
 }
 
 export function normalizeBillingStatus(

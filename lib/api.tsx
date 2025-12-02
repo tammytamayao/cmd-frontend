@@ -1,7 +1,7 @@
 import { getToken } from "@/lib/auth";
 import { AdminSubscriber } from "./types";
 
-const API_BASE =
+export const API_BASE =
   process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
 
 export async function login(phone: string, password: string) {
@@ -115,7 +115,7 @@ export async function adminLogin(email: string, password: string) {
   return data;
 }
 
-export async function fetchAdminSubscribers(page = 1, token?: string | null) {
+export async function fetchAllSubscribers(page = 1, token?: string | null) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
 
@@ -146,5 +146,25 @@ export async function fetchAdminSubscribers(page = 1, token?: string | null) {
       total: number;
       total_pages: number;
     };
+  };
+}
+
+export async function fetchAllPaymentss(page: number, token: string) {
+  const url = new URL(`${API_BASE}/api/admin/payments`);
+  url.searchParams.set("page", String(page));
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.error || `Error: ${res.status}`);
+  }
+
+  return {
+    data: data.data || [],
+    meta: data.meta || null,
   };
 }
