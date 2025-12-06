@@ -184,3 +184,22 @@ export async function fetchAllPaymentss(page: number, token: string) {
     meta: data.meta || null,
   };
 }
+
+export async function fetchAdminPayment(
+  id: number | string,
+  token?: string | null
+) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/payments/${id}`, {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `admin payment fetch failed: ${res.status}`);
+  }
+  return data;
+}
