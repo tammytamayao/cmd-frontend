@@ -5,15 +5,14 @@ import { getToken } from "@/lib/auth";
 import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
-import {
-  formatDate,
-  formatCurrency,
-  statusBadgeClasses,
-  titleCase,
-} from "@/lib/helpers";
+import { formatDate, statusBadgeClasses, titleCase } from "@/lib/helpers";
 
 import { fetchAllPaymentss, fetchAdminPayment } from "@/lib/api";
 import { PaymentDetailsModal } from "@/app/components/PaymentDetailsModal";
+import {
+  EditPaymentModal,
+  AdminPayment as AdminPaymentForEdit,
+} from "@/app/components/EditPaymentModal";
 
 // ---------------- Types ----------------
 
@@ -39,6 +38,7 @@ type AdminPayment = {
   status: string;
   attachment: string | null;
   reference_number: string | null;
+  invoice_number?: string | null;
   billing_id: number;
   billing_period_start: string | null;
   billing_period_end: string | null;
@@ -58,13 +58,17 @@ export default function AdminPaymentsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
-  // modal state
+  // view modal state
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<AdminPayment | null>(
     null
   );
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
+
+  // edit modal state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editPayment, setEditPayment] = useState<AdminPayment | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -93,6 +97,7 @@ export default function AdminPaymentsPage() {
     return (
       String(p.id).includes(q) ||
       (p.reference_number || "").toLowerCase().includes(q) ||
+      (p.invoice_number || "").toLowerCase().includes(q) || // include invoice in search
       (p.payment_method || "").toLowerCase().includes(q) ||
       (p.subscriber?.serial_number || "").toLowerCase().includes(q) ||
       (p.subscriber?.last_name || "").toLowerCase().includes(q)
@@ -119,10 +124,38 @@ export default function AdminPaymentsPage() {
     }
   };
 
+  const handleOpenEdit = async (id: number) => {
+    if (!token) return;
+
+    try {
+      const res = await fetchAdminPayment(id, token);
+      setEditPayment(res.data as AdminPayment);
+      setEditOpen(true);
+    } catch (e) {
+      alert(
+        e instanceof Error ? e.message : "Failed to load payment for editing."
+      );
+    }
+  };
+
   const handleCloseModal = () => {
     setDetailsOpen(false);
     setSelectedPayment(null);
     setDetailsError(null);
+  };
+
+  const handleCloseEdit = () => {
+    setEditOpen(false);
+    setEditPayment(null);
+  };
+
+  // after successful update, update local list
+  const handlePaymentUpdated = (updated: AdminPayment) => {
+    setPayments((prev) =>
+      prev
+        ? prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
+        : prev
+    );
   };
 
   if (err) {
@@ -177,7 +210,9 @@ export default function AdminPaymentsPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     PAYMENT STATUS
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500"></th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
+                    ACTIONS
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -195,7 +230,10 @@ export default function AdminPaymentsPage() {
                 {filteredPayments?.map((p, idx) => (
                   <tr
                     key={p.id}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}
+                    onClick={() => handleViewDetails(p.id)}
+                    className={`${
+                      idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"
+                    } cursor-pointer hover:bg-indigo-50/50 transition-colors`}
                   >
                     <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
                       {p.subscriber?.serial_number || "—"}
@@ -237,12 +275,16 @@ export default function AdminPaymentsPage() {
                       </span>
                     </td>
 
-                    <td className="px-4 py-3 align-middle text-right">
+                    <td className="px-4 py-3 align-middle text-right space-x-2">
+                      {/* Edit button should not trigger row click */}
                       <button
-                        onClick={() => handleViewDetails(p.id)}
-                        className="inline-flex items-center rounded-lg border border-indigo-500 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-white hover:bg-indigo-50 hover:border-indigo-600 active:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEdit(p.id);
+                        }}
+                        className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
                       >
-                        View details
+                        Edit
                       </button>
                     </td>
                   </tr>
@@ -255,13 +297,21 @@ export default function AdminPaymentsPage() {
         </section>
       </main>
 
-      {/* Shared payment details modal (same as subscriber UI) */}
+      {/* View details modal */}
       <PaymentDetailsModal
         open={detailsOpen}
         onClose={handleCloseModal}
         payment={selectedPayment}
         loading={detailsLoading}
         error={detailsError}
+      />
+
+      {/* Edit payment modal */}
+      <EditPaymentModal
+        open={editOpen}
+        onClose={handleCloseEdit}
+        payment={editPayment as AdminPaymentForEdit | null}
+        onUpdated={handlePaymentUpdated}
       />
     </div>
   );
