@@ -177,9 +177,7 @@ export default function AdminPaymentsPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     PAYMENT STATUS
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
-                    ACTIONS
-                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500"></th>
                 </tr>
               </thead>
               <tbody>
