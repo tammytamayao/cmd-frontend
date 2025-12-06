@@ -68,16 +68,6 @@ export function AdminSidebar({ active }: AdminSidebarProps) {
           <span>Billings</span>
         </button>
 
-        {/* Reports */}
-        <button
-          type="button"
-          onClick={() => go("/admin/reports")}
-          className={navButtonClasses(active === "reports")}
-        >
-          <span>📊</span>
-          <span>Reports</span>
-        </button>
-
         {/* Logout */}
         <button
           type="button"
