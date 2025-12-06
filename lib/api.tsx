@@ -64,6 +64,22 @@ export async function fetchPayments(token?: string | null, year?: number) {
   return res.json();
 }
 
+export async function fetchPayment(id: string | number, token?: string | null) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/v1/payments/${id}`, {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `payment fetch failed: ${res.status}`);
+  }
+  return data;
+}
+
 export async function fetchOpenOrOverdueBillings(token?: string | null) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
