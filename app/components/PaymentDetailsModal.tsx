@@ -1,7 +1,6 @@
-// app/billing/PaymentDetailsModal.tsx
+// app/components/PaymentDetailsModal.tsx
 
 import Image from "next/image";
-import { PaymentDetail } from "@/lib/types";
 import {
   formatCurrency,
   formatDate,
@@ -9,10 +8,28 @@ import {
   titleCase,
 } from "@/lib/helpers";
 
+// Minimal shape that both PaymentDetail and AdminPayment satisfy
+type PaymentLike = {
+  payment_date: string | null;
+  amount: number;
+  payment_method: string;
+  status: string;
+  reference_number?: string | null;
+  billing_period_start?: string | null;
+  billing_period_end?: string | null;
+  receipt?: {
+    filename: string | null;
+    size: number | null;
+    mime_type: string | null;
+    uploaded_at: string | null;
+  } | null;
+  receipt_url?: string | null;
+};
+
 type PaymentDetailsModalProps = {
   open: boolean;
   onClose: () => void;
-  payment: PaymentDetail | null;
+  payment: PaymentLike | null;
   loading: boolean;
   error: string | null;
 };
@@ -41,12 +58,14 @@ export function PaymentDetailsModal({
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full mx-4 overflow-hidden">
+        {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">
             Payment Details
           </h2>
         </div>
 
+        {/* Body */}
         <div className="px-6 py-4 max-h-[70vh] overflow-y-auto text-sm">
           {loading && (
             <div className="text-center text-gray-500 py-4">
@@ -61,6 +80,7 @@ export function PaymentDetailsModal({
           {!loading && !error && payment && (
             <>
               <div className="space-y-2">
+                {/* Payment Date */}
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-500">Payment Date</span>
                   <span className="font-medium text-gray-900">
@@ -68,6 +88,7 @@ export function PaymentDetailsModal({
                   </span>
                 </div>
 
+                {/* Amount */}
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-500">Amount</span>
                   <span className="font-semibold text-gray-900">
@@ -75,6 +96,7 @@ export function PaymentDetailsModal({
                   </span>
                 </div>
 
+                {/* Method */}
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-500">Payment Method</span>
                   <span className="font-medium text-gray-900">
@@ -82,19 +104,19 @@ export function PaymentDetailsModal({
                   </span>
                 </div>
 
+                {/* Status */}
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-500">Status</span>
                   <span>
-                    {payment && (
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${statusClasses}`}
-                      >
-                        {statusLabel(payment.status)}
-                      </span>
-                    )}
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ${statusClasses}`}
+                    >
+                      {statusLabel(payment.status)}
+                    </span>
                   </span>
                 </div>
 
+                {/* Reference */}
                 <div className="flex justify-between gap-4">
                   <span className="text-gray-500">Reference #</span>
                   <span className="text-gray-900">
@@ -102,6 +124,7 @@ export function PaymentDetailsModal({
                   </span>
                 </div>
 
+                {/* Billing period */}
                 {payment.billing_period_start && (
                   <div className="flex justify-between gap-4">
                     <span className="text-gray-500">Billing Period</span>
@@ -133,7 +156,7 @@ export function PaymentDetailsModal({
                       />
                     </div>
                   ) : (
-                    <a className=" text-indigo-600 text-sm font-medium">
+                    <a className="inline-flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium hover:underline">
                       Not Applicable
                     </a>
                   )}
@@ -152,6 +175,7 @@ export function PaymentDetailsModal({
           )}
         </div>
 
+        {/* Footer */}
         <div className="px-6 py-3 border-t border-gray-100 flex justify-end">
           <button
             onClick={onClose}
