@@ -111,7 +111,6 @@ export async function createPayment(form: FormData, token?: string | null) {
   return res.json();
 }
 
-// 🔹 NEW: admin / staff login
 export async function adminLogin(email: string, password: string) {
   const resp = await fetch(`${API_BASE}/api/admin/login`, {
     method: "POST",
@@ -200,6 +199,35 @@ export async function fetchAdminPayment(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.error || `admin payment fetch failed: ${res.status}`);
+  }
+  return data;
+}
+
+export async function updateAdminPayment(
+  id: number | string,
+  payload: {
+    status?: string;
+    payment_method?: string;
+    amount?: number;
+    reference_number?: string | null;
+    invoice_number?: string | null;
+  },
+  token?: string | null
+) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/payments/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${t}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `admin payment update failed: ${res.status}`);
   }
   return data;
 }
