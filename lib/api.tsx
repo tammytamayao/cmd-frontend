@@ -335,3 +335,82 @@ export async function updateAdminBilling(
     data: data.data as AdminBilling,
   };
 }
+
+// Get batch billing summary (all subscribers by default)
+export async function fetchAdminBillingBatchSummary(
+  group: "all" | "specific" = "all",
+  subscriberIds?: (number | string)[],
+  token?: string | null
+): Promise<{ group: string; accounts_selected: number; base_amount: number }> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const url = new URL(`${API_BASE}/api/admin/billings/batch_summary`);
+  url.searchParams.set("group", group);
+
+  if (group === "specific" && subscriberIds && subscriberIds.length > 0) {
+    // send as comma-separated for simplicity
+    url.searchParams.set("subscriber_ids", subscriberIds.join(","));
+  }
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      data.error || `admin billing batch summary failed: ${res.status}`
+    );
+  }
+
+  return data as {
+    group: string;
+    accounts_selected: number;
+    base_amount: number;
+  };
+}
+
+// api.ts
+
+export async function createAdminBillingBatch(
+  payload: {
+    group?: "all" | "specific";
+    subscriber_ids?: (number | string)[];
+    billing_month?: string | null;
+    due_date: string;
+    adjustment_per_account?: number;
+    adjustment_notes?: string | null;
+  },
+  token?: string | null
+): Promise<{
+  group: string;
+  accounts_selected: number;
+  created_count: number;
+}> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/billings/batch_create`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${t}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      data.error || `admin billing batch create failed: ${res.status}`
+    );
+  }
+
+  return data as {
+    group: string;
+    accounts_selected: number;
+    created_count: number;
+  };
+}
