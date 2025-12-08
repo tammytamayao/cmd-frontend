@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 
 type SelectDropdownProps<T extends string | number> = {
   value: T | null;
-  options: T[];
+  options: readonly T[]; // ✅ allow readonly arrays & tuples
   onChange: (value: T) => void;
   getLabel?: (value: T) => string;
   placeholder?: string;
