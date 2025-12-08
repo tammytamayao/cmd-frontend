@@ -16,10 +16,10 @@ import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
 import { BillingDetailsModal } from "@/app/components/BillingDetailsModal";
-// import {
-//   EditBillingModal,
-//   AdminBilling as AdminBillingForEdit,
-// } from "@/app/components/EditBillingModal";
+import {
+  EditBillingModal,
+  AdminBillingForEdit,
+} from "@/app/components/EditBillingModal";
 
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
@@ -40,6 +40,38 @@ export default function AdminBillingsPage() {
   // ---------- Edit modal state ----------
   const [editOpen, setEditOpen] = useState(false);
   const [editBilling, setEditBilling] = useState<AdminBilling | null>(null);
+
+  const handleOpenEdit = async (id: number) => {
+    const t = getToken();
+    if (!t) {
+      alert("No token found. Please log in as staff.");
+      return;
+    }
+
+    try {
+      const res = await fetchAdminBilling(id, t);
+      setEditBilling(res.data as AdminBilling);
+      setEditOpen(true);
+    } catch (e) {
+      alert(
+        e instanceof Error ? e.message : "Failed to load billing for editing."
+      );
+    }
+  };
+
+  const handleCloseEdit = () => {
+    setEditOpen(false);
+    setEditBilling(null);
+  };
+
+  // after successful update, update local list
+  const handleBillingUpdated = (updated: AdminBillingForEdit) => {
+    setBillings((prev) =>
+      prev
+        ? prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
+        : prev
+    );
+  };
 
   // Check token and load billings
   useEffect(() => {
@@ -103,43 +135,11 @@ export default function AdminBillingsPage() {
     }
   };
 
-  const handleOpenEdit = async (id: number) => {
-    const t = getToken();
-    if (!t) {
-      alert("No token found. Please log in as staff.");
-      return;
-    }
-
-    try {
-      const res = await fetchAdminBilling(id, t);
-      setEditBilling(res.data as AdminBilling);
-      setEditOpen(true);
-    } catch (e) {
-      alert(
-        e instanceof Error ? e.message : "Failed to load billing for editing."
-      );
-    }
-  };
-
   const handleCloseDetails = () => {
     setDetailsOpen(false);
     setSelectedBilling(null);
     setDetailsError(null);
   };
-
-  // const handleCloseEdit = () => {
-  //   setEditOpen(false);
-  //   setEditBilling(null);
-  // };
-
-  // // after successful update, update local list
-  // const handleBillingUpdated = (updated: AdminBillingForEdit) => {
-  //   setBillings((prev) =>
-  //     prev
-  //       ? prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
-  //       : prev
-  //   );
-  // };
 
   // ---------- Early states ----------
 
@@ -305,12 +305,12 @@ export default function AdminBillingsPage() {
       />
 
       {/* Edit billing modal */}
-      {/* <EditBillingModal
+      <EditBillingModal
         open={editOpen}
         onClose={handleCloseEdit}
         billing={editBilling as AdminBillingForEdit | null}
         onUpdated={handleBillingUpdated}
-      /> */}
+      />
     </div>
   );
 }
