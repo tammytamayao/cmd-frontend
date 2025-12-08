@@ -8,7 +8,7 @@ export function formatDate(dateStr: string | null): string {
   if (Number.isNaN(d.getTime())) return dateStr;
   return new Date(dateStr).toLocaleDateString("en-PH", {
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
   });
 }
@@ -28,6 +28,10 @@ export function statusBadgeClasses(status: string): string {
   if (normalized === "pending") {
     return "bg-amber-50 text-amber-700 ring-amber-100";
   }
+  // 🔹 NEW: rejected / failed
+  if (normalized === "rejected" || normalized === "failed") {
+    return "bg-rose-50 text-rose-700 ring-rose-100";
+  }
 
   return "bg-gray-50 text-gray-600 ring-gray-100";
 }
@@ -46,10 +50,11 @@ export function paymentTone(status: string): "green" | "red" | "gray" {
   const lower = status.toLowerCase();
   if (lower === "confirmed") return "green";
   if (lower === "processing") return "gray";
-  if (lower === "failed") return "red";
+  if (lower === "failed" || lower === "rejected") return "red"; // 🔹 include rejected
   return "gray";
 }
 
 export function titleCase(s: string) {
+  if (!s) return s;
   return s.slice(0, 1).toUpperCase() + s.slice(1).toLowerCase();
 }

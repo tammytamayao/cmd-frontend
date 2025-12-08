@@ -116,10 +116,7 @@ export default function AdminDashboardPage() {
                     INSTALLATION DATE
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    PLAN
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    PACKAGE
+                    PACKAGE PLAN
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     PACKAGE SPEED
@@ -164,13 +161,9 @@ export default function AdminDashboardPage() {
                     </td>
 
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      {s.plan ? `${s.plan}` : "Unknown"}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-gray-900">
                       {s.package ? `${s.package}` : "-"}
+                      {s.plan ? `${s.plan}` : "-"}
                     </td>
-
                     <td className="px-4 py-3 text-sm text-gray-900">
                       Up to {s.package_speed ? `${s.package_speed}` : "0"} mbps
                     </td>

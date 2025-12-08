@@ -103,7 +103,7 @@ function DashboardInner() {
             <div className="card p-6">
               <h3 className="text-xl font-semibold mb-2">Account Details</h3>
               <hr />
-              <FieldRow label="Customer" value={me.full_name} />
+              <FieldRow label="Subscriber Name" value={me.full_name} />
               <FieldRow
                 label="Subscriber ID"
                 value={me.serial_number}
@@ -143,8 +143,8 @@ function DashboardInner() {
               <h3 className="text-xl font-semibold mb-2">Current Plan</h3>
               <hr />
               <FieldRow
-                label="Plan (Package)"
-                value={`${me.plan} (${me.package})`}
+                label="Package Plan"
+                value={`${me.package}${me.plan}`}
               />
               <FieldRow
                 label="Speed"

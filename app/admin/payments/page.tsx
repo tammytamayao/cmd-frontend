@@ -5,11 +5,33 @@ import { getToken } from "@/lib/auth";
 import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
-import { formatDate, statusBadgeClasses } from "@/lib/helpers";
+import {
+  formatDate,
+  formatCurrency,
+  statusBadgeClasses,
+  titleCase,
+} from "@/lib/helpers";
 
-import { fetchAllPaymentss } from "@/lib/api";
+import { fetchAllPaymentss, fetchAdminPayment } from "@/lib/api";
+import { PaymentDetailsModal } from "@/app/components/PaymentDetailsModal";
 
-type Payment = {
+// ---------------- Types ----------------
+
+type AdminPaymentSubscriber = {
+  id: number | null;
+  serial_number: string | null;
+  first_name: string | null;
+  last_name: string | null;
+};
+
+type AdminPaymentReceipt = {
+  filename: string | null;
+  size: number | null;
+  mime_type: string | null;
+  uploaded_at: string | null;
+};
+
+type AdminPayment = {
   id: number;
   payment_date: string | null;
   amount: number;
@@ -21,29 +43,28 @@ type Payment = {
   billing_period_start: string | null;
   billing_period_end: string | null;
   billing_status: string | null;
-
-  subscriber: {
-    id: number | null;
-    serial_number: string | null;
-    first_name: string | null;
-    last_name: string | null;
-  };
-
-  receipt: {
-    filename: string | null;
-    size: number | null;
-    mime_type: string | null;
-    uploaded_at: string | null;
-  };
+  subscriber: AdminPaymentSubscriber;
+  receipt: AdminPaymentReceipt;
+  receipt_url?: string | null;
 };
+
+// ---------------- Main Page ----------------
 
 export default function AdminPaymentsPage() {
   const token = getToken();
-  const [payments, setPayments] = useState<Payment[] | null>(null);
+  const [payments, setPayments] = useState<AdminPayment[] | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
   const [err, setErr] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+
+  // modal state
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedPayment, setSelectedPayment] = useState<AdminPayment | null>(
+    null
+  );
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -72,9 +93,37 @@ export default function AdminPaymentsPage() {
     return (
       String(p.id).includes(q) ||
       (p.reference_number || "").toLowerCase().includes(q) ||
-      (p.payment_method || "").toLowerCase().includes(q)
+      (p.payment_method || "").toLowerCase().includes(q) ||
+      (p.subscriber?.serial_number || "").toLowerCase().includes(q) ||
+      (p.subscriber?.last_name || "").toLowerCase().includes(q)
     );
   });
+
+  const handleViewDetails = async (id: number) => {
+    if (!token) return;
+
+    setDetailsOpen(true);
+    setDetailsLoading(true);
+    setDetailsError(null);
+    setSelectedPayment(null);
+
+    try {
+      const res = await fetchAdminPayment(id, token);
+      setSelectedPayment(res.data as AdminPayment);
+    } catch (e) {
+      setDetailsError(
+        e instanceof Error ? e.message : "Failed to load payment details"
+      );
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setDetailsOpen(false);
+    setSelectedPayment(null);
+    setDetailsError(null);
+  };
 
   if (err) {
     return (
@@ -117,10 +166,10 @@ export default function AdminPaymentsPage() {
                     SUBSCRIBER NAME
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    BILLING PERIOD
+                    PAYMENT DATE
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    AMOUNT
+                    BILLING PERIOD
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     MODE OF PAYMENT
@@ -128,13 +177,14 @@ export default function AdminPaymentsPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     PAYMENT STATUS
                   </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500"></th>
                 </tr>
               </thead>
               <tbody>
                 {filteredPayments && filteredPayments.length === 0 && (
                   <tr>
                     <td
-                      colSpan={8}
+                      colSpan={7}
                       className="px-4 py-6 text-center text-sm text-gray-500"
                     >
                       No payments match your search.
@@ -155,10 +205,11 @@ export default function AdminPaymentsPage() {
                         <span className="font-medium text-gray-900">
                           {p.subscriber?.last_name}, {p.subscriber?.first_name}
                         </span>
-                        <span className="text-xs text-gray-500">
-                          {formatDate(p.payment_date)}
-                        </span>
                       </div>
+                    </td>
+
+                    <td className="px-4 py-3 align-middle text-sm text-gray-900">
+                      {formatDate(p.payment_date)}
                     </td>
 
                     <td className="px-4 py-3 align-middle text-sm text-gray-700">
@@ -171,23 +222,28 @@ export default function AdminPaymentsPage() {
                         <span className="text-gray-400">N/A</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 align-middle text-sm text-gray-900">
-                      ₱
-                      {p.amount.toLocaleString("en-PH", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
+
                     <td className="px-4 py-3 align-middle text-sm text-gray-700">
                       {p.payment_method || "—"}
                     </td>
+
                     <td className="px-4 py-3 align-middle">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusBadgeClasses(
                           p.status
                         )}`}
                       >
-                        {p.status}
+                        {titleCase(p.status)}
                       </span>
+                    </td>
+
+                    <td className="px-4 py-3 align-middle text-right">
+                      <button
+                        onClick={() => handleViewDetails(p.id)}
+                        className="inline-flex items-center rounded-lg border border-indigo-500 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-white hover:bg-indigo-50 hover:border-indigo-600 active:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+                      >
+                        View details
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -198,6 +254,15 @@ export default function AdminPaymentsPage() {
           </div>
         </section>
       </main>
+
+      {/* Shared payment details modal (same as subscriber UI) */}
+      <PaymentDetailsModal
+        open={detailsOpen}
+        onClose={handleCloseModal}
+        payment={selectedPayment}
+        loading={detailsLoading}
+        error={detailsError}
+      />
     </div>
   );
 }
