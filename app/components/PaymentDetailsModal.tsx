@@ -1,5 +1,3 @@
-// app/components/PaymentDetailsModal.tsx
-
 import Image from "next/image";
 import {
   formatCurrency,
@@ -8,20 +6,20 @@ import {
   titleCase,
 } from "@/lib/helpers";
 
-// Minimal shape that both PaymentDetail and AdminPayment satisfy
 type PaymentLike = {
   payment_date: string | null;
   amount: number;
   payment_method: string;
   status: string;
   reference_number?: string | null;
+  invoice_number?: string | null;
   billing_period_start?: string | null;
   billing_period_end?: string | null;
   receipt?: {
-    filename: string | null;
-    size: number | null;
-    mime_type: string | null;
-    uploaded_at: string | null;
+    filename?: string | null;
+    size?: number | null;
+    mime_type?: string | null;
+    uploaded_at?: string | null;
   } | null;
   receipt_url?: string | null;
 };
@@ -79,6 +77,18 @@ export function PaymentDetailsModal({
 
           {!loading && !error && payment && (
             <>
+              {/* Billing period */}
+              {payment.billing_period_start && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-gray-500">Billing Period</span>
+                  <span className="text-gray-900 text-right">
+                    {formatDate(payment.billing_period_start as string)} –{" "}
+                    {payment.billing_period_end
+                      ? formatDate(payment.billing_period_end as string)
+                      : "-"}
+                  </span>
+                </div>
+              )}
               <div className="space-y-2">
                 {/* Payment Date */}
                 <div className="flex justify-between gap-4">
@@ -118,24 +128,19 @@ export function PaymentDetailsModal({
 
                 {/* Reference */}
                 <div className="flex justify-between gap-4">
-                  <span className="text-gray-500">Reference #</span>
+                  <span className="text-gray-500">Reference No.</span>
                   <span className="text-gray-900">
                     {payment.reference_number || "-"}
                   </span>
                 </div>
 
-                {/* Billing period */}
-                {payment.billing_period_start && (
-                  <div className="flex justify-between gap-4">
-                    <span className="text-gray-500">Billing Period</span>
-                    <span className="text-gray-900 text-right">
-                      {formatDate(payment.billing_period_start as string)} –{" "}
-                      {payment.billing_period_end
-                        ? formatDate(payment.billing_period_end as string)
-                        : "-"}
-                    </span>
-                  </div>
-                )}
+                {/* Invoice */}
+                <div className="flex justify-between gap-4">
+                  <span className="text-gray-500">Invoice No.</span>
+                  <span className="text-gray-900">
+                    {payment.invoice_number || "-"}
+                  </span>
+                </div>
               </div>
 
               {/* Receipt preview / link */}
