@@ -15,6 +15,38 @@ export type AdminSubscriber = {
   latest_billing_status: string | null;
 };
 
+export type AdminBillingSubscriber = {
+  id: number;
+  serial_number: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone_number: string | null;
+  package: string | null;
+  plan: string | null;
+  zone: string | null;
+};
+
+export type AdminBilling = {
+  id: number;
+  start_date: string | null;
+  end_date: string | null;
+  amount: number;
+  due_date: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+
+  subscriber_id: number;
+  subscriber: AdminBillingSubscriber;
+};
+
+export type PaginationMeta = {
+  page: number;
+  per_page: number;
+  total: number;
+  total_pages: number;
+};
+
 // SUBSCRIBER BILLING
 
 export type Payment = {
