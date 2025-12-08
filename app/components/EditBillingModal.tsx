@@ -92,24 +92,11 @@ export function EditBillingModal({
       <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <div>
-            <h2 className="text-sm font-semibold text-gray-900">
-              Edit Billing
-            </h2>
-            <p className="mt-0.5 text-xs text-gray-500">
-              Update billing status and amount.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          >
-            <span className="sr-only">Close</span>✕
-          </button>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {billing?.subscriber?.first_name} {billing?.subscriber?.last_name}
+          </h2>
         </div>
 
-        {/* Body / Form */}
         <form onSubmit={handleSubmit} className="px-6 py-5 text-sm space-y-4">
           {!billing && (
             <div className="text-center text-gray-500">
@@ -119,20 +106,6 @@ export function EditBillingModal({
 
           {billing && (
             <>
-              {/* Subscriber summary */}
-              <div className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600">
-                <div className="font-medium text-gray-800">
-                  {billing.subscriber?.last_name},{" "}
-                  {billing.subscriber?.first_name}
-                </div>
-                <div className="mt-0.5">
-                  Subscriber ID:{" "}
-                  <span className="font-mono text-indigo-600">
-                    {billing.subscriber?.serial_number || "—"}
-                  </span>
-                </div>
-              </div>
-
               {/* Read-only billing info */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 text-xs">
                 <div>
@@ -194,12 +167,6 @@ export function EditBillingModal({
                     className="text-xs"
                   />
                 </div>
-                <p className="mt-1 text-[11px] text-gray-400">
-                  <span className="font-medium">Paid</span> includes{" "}
-                  <code>paid</code> and <code>closed</code>.{" "}
-                  <span className="font-medium">Unpaid</span> includes{" "}
-                  <code>open</code> and <code>overdue</code>.
-                </p>
               </div>
             </>
           )}
