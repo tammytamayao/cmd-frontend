@@ -302,3 +302,36 @@ export async function fetchAdminBilling(
     data: data.data as AdminBilling,
   };
 }
+
+export async function updateAdminBilling(
+  id: number | string,
+  payload: {
+    status?: string;
+    start_date?: string | null;
+    end_date?: string | null;
+    due_date?: string | null;
+    amount?: number;
+  },
+  token?: string | null
+): Promise<{ data: AdminBilling }> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/billings/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${t}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `admin billing update failed: ${res.status}`);
+  }
+
+  return {
+    data: data.data as AdminBilling,
+  };
+}
