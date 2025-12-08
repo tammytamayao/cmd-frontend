@@ -20,6 +20,7 @@ import {
   EditBillingModal,
   AdminBillingForEdit,
 } from "@/app/components/EditBillingModal";
+import { useRouter } from "next/navigation";
 
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
@@ -40,6 +41,8 @@ export default function AdminBillingsPage() {
   // ---------- Edit modal state ----------
   const [editOpen, setEditOpen] = useState(false);
   const [editBilling, setEditBilling] = useState<AdminBilling | null>(null);
+
+  const router = useRouter();
 
   const handleOpenEdit = async (id: number) => {
     const t = getToken();
@@ -173,7 +176,9 @@ export default function AdminBillingsPage() {
         {/* Shared admin header */}
         <AdminHeader
           title="Billing Accounts"
-          subtitle="View all subscribers' billing records."
+          subtitle="View and process all subscribers' billing records."
+          actionLabel="Add Billing"
+          onAction={() => router.push("/admin/billings/new")}
         />
 
         {/* Table of billings */}
