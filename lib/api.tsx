@@ -1,5 +1,10 @@
 import { getToken } from "@/lib/auth";
-import { AdminBilling, AdminSubscriber, PaginationMeta } from "./types";
+import {
+  AdminBilling,
+  AdminSubscriber,
+  Billing,
+  PaginationMeta,
+} from "./types";
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
@@ -34,6 +39,14 @@ export async function fetchCurrentUser(token?: string | null) {
   return res.json();
 }
 
+/**
+ * Subscriber billings (V1)
+ * Backend supports:
+ *   ?year=2025
+ *   ?start_year=2024&end_year=2025
+ *   ?status=paid,unpaid,overdue
+ *     - overdue = unpaid + due_date < today (handled server-side)
+ */
 export async function fetchBillings(token?: string | null, year?: number) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -80,20 +93,49 @@ export async function fetchPayment(id: string | number, token?: string | null) {
   return data;
 }
 
-export async function fetchOpenOrOverdueBillings(token?: string | null) {
+/**
+ * Fetch billings that are NOT fully settled:
+ *  - unpaid (including those that are overdue)
+ *  - overdue (derived on the server as unpaid + past due_date)
+ *
+ * Backend: ?status=unpaid,overdue
+ * (Your V1 controller ORs these together.)
+ */
+
+export type BillingListResponse = {
+  data: Billing[];
+  meta?: {
+    page: number;
+    per_page: number;
+    total: number;
+    total_pages: number;
+  };
+};
+
+/**
+ * Fetch unpaid + overdue billings
+ * backend treats "overdue" as (unpaid + due_date < today)
+ */
+export async function fetchOpenOrOverdueBillings(
+  token?: string | null
+): Promise<BillingListResponse> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
 
   const url = new URL(`${API_BASE}/api/v1/billings`);
-  url.searchParams.set("status", "open,overdue");
+  url.searchParams.set("status", "unpaid,overdue");
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${t}` },
     cache: "no-store",
   });
 
-  if (!res.ok) throw new Error(`billings fetch failed: ${res.status}`);
-  return res.json();
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.error || `billings fetch failed: ${res.status}`);
+  }
+
+  return json as BillingListResponse;
 }
 
 export async function createPayment(form: FormData, token?: string | null) {
@@ -223,17 +265,19 @@ export async function updateAdminPayment(
       Authorization: `Bearer ${t}`,
       "Content-Type": "application/json",
     },
+    body: JSON.stringify(payload),
   });
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data.error || `admin payment update failed: ${res.status}`);
   }
-  return data;
+
+  return data; // { data: { ...payment... } } from your controller
 }
 
 /**
- * ADMIN: BILLINGS (NEW)
+ * ADMIN: BILLINGS
  *
  * Backend:
  *   GET /api/admin/billings
@@ -243,10 +287,6 @@ export async function updateAdminPayment(
  *   GET /api/admin/billings/:id
  */
 
-/**
- * List billings (optionally filtered by subscriber).
- * Includes subscriber data in each billing (as per controller).
- */
 export async function fetchAdminBillings(
   page = 1,
   token?: string | null,
@@ -371,8 +411,6 @@ export async function fetchAdminBillingBatchSummary(
     base_amount: number;
   };
 }
-
-// api.ts
 
 export async function createAdminBillingBatch(
   payload: {

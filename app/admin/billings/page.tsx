@@ -164,6 +164,8 @@ export default function AdminBillingsPage() {
     );
   }
 
+  const today = new Date();
+
   // ---------- Main UI ----------
 
   return (
@@ -213,6 +215,9 @@ export default function AdminBillingsPage() {
                       BILLING PERIOD
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      DUE DATE
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                       STATUS
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
@@ -221,75 +226,99 @@ export default function AdminBillingsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {billings.map((b, idx) => (
-                    <tr
-                      key={b.id}
-                      onClick={() => handleViewDetails(b.id)}
-                      className={`${
-                        idx % 2 === 0 ? "bg-white" : "bg-gray-50/70"
-                      } cursor-pointer hover:bg-indigo-50/50 transition-colors`}
-                    >
-                      {/* Subscriber ID */}
-                      <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
-                        {b.subscriber?.serial_number || "—"}
-                      </td>
+                  {billings.map((b, idx) => {
+                    // Base status from DB (paid/unpaid)
+                    const normalized = normalizeBillingStatus(b.status);
 
-                      {/* Subscriber name */}
-                      <td className="px-4 py-3 align-middle">
-                        <div className="flex flex-col">
-                          <span className="font-medium text-gray-900">
-                            {b.subscriber?.last_name},{" "}
-                            {b.subscriber?.first_name}
-                          </span>
-                        </div>
-                      </td>
+                    const isPaid = normalized === "paid";
+                    const dueDateObj = new Date(b.due_date as string);
+                    const hasValidDueDate = !Number.isNaN(dueDateObj.getTime());
+                    const isOverdue =
+                      !isPaid && hasValidDueDate && dueDateObj < today;
+                    const isUnpaid = !isPaid && !isOverdue;
 
-                      {/* Zone */}
-                      <td className="px-4 py-3 align-middle text-sm text-gray-700">
-                        {b.subscriber?.zone || "—"}
-                      </td>
+                    // uiStatus is what we actually show to the user
+                    const uiStatus = isPaid
+                      ? "paid"
+                      : isOverdue
+                      ? "overdue"
+                      : "unpaid";
 
-                      {/* Billing period */}
-                      <td className="px-4 py-3 align-middle text-sm text-gray-700">
-                        {b.start_date && b.end_date ? (
-                          <>
-                            {formatDate(b.start_date)} –{" "}
-                            {formatDate(b.end_date)}
-                          </>
-                        ) : (
-                          <span className="text-gray-400">N/A</span>
-                        )}
-                      </td>
+                    return (
+                      <tr
+                        key={b.id}
+                        onClick={() => handleViewDetails(b.id)}
+                        className={`${
+                          idx % 2 === 0 ? "bg-white" : "bg-gray-50/70"
+                        } cursor-pointer hover:bg-indigo-50/50 transition-colors`}
+                      >
+                        {/* Subscriber ID */}
+                        <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
+                          {b.subscriber?.serial_number || "—"}
+                        </td>
 
-                      {/* Status */}
-                      <td className="px-4 py-3 align-middle">
-                        {b.status ? (
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusBadgeClasses(
-                              normalizeBillingStatus(b.status)
-                            )}`}
+                        {/* Subscriber name */}
+                        <td className="px-4 py-3 align-middle">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">
+                              {b.subscriber?.last_name},{" "}
+                              {b.subscriber?.first_name}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Zone */}
+                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
+                          {b.subscriber?.zone || "—"}
+                        </td>
+
+                        {/* Billing period */}
+                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
+                          {b.start_date && b.end_date ? (
+                            <>
+                              {formatDate(b.start_date)} –{" "}
+                              {formatDate(b.end_date)}
+                            </>
+                          ) : (
+                            <span className="text-gray-400">N/A</span>
+                          )}
+                        </td>
+
+                        {/* Due date */}
+                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
+                          {formatDate(b.due_date as string)}
+                        </td>
+
+                        {/* Status (derived overdue where applicable) */}
+                        <td className="px-4 py-3 align-middle">
+                          {b.status ? (
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusBadgeClasses(
+                                uiStatus
+                              )}`}
+                            >
+                              {titleCase(uiStatus)}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                        </td>
+
+                        {/* Actions: Edit button that does NOT trigger row click */}
+                        <td className="px-4 py-3 align-middle text-right space-x-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEdit(b.id);
+                            }}
+                            className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
                           >
-                            {titleCase(normalizeBillingStatus(b.status))}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">—</span>
-                        )}
-                      </td>
-
-                      {/* Actions: Edit button that does NOT trigger row click */}
-                      <td className="px-4 py-3 align-middle text-right space-x-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenEdit(b.id);
-                          }}
-                          className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
-                        >
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             )}

@@ -8,8 +8,8 @@ import { AdminHeader } from "@/app/components/admin/AdminHeader";
 import {
   fetchAdminBillingBatchSummary,
   createAdminBillingBatch,
-} from "@/lib/api"; // ⬅️ updated import
-import { SelectDropdown } from "@/app/components/ui/SelectDropdown"; // ⬅️ adjust path if needed
+} from "@/lib/api";
+import { SelectDropdown } from "@/app/components/ui/SelectDropdown";
 
 type AdjustmentItem = {
   id: number;
@@ -47,7 +47,7 @@ export default function AdminNewBillingPage() {
 
   // ------- Charges & adjustments (per account) -------
   const [adjAmount, setAdjAmount] = useState("");
-  const [adjustmentNotes, setAdjustmentNotes] = useState(""); // ⬅️ NEW
+  const [adjustmentNotes, setAdjustmentNotes] = useState("");
   const [adjustments, setAdjustments] = useState<AdjustmentItem[]>([]);
   const [nextAdjId, setNextAdjId] = useState(1);
 
@@ -166,13 +166,23 @@ export default function AdminNewBillingPage() {
     try {
       setSubmitting(true);
 
-      await createAdminBillingBatch({
+      // Build payload so that:
+      // - if no adjustments: omit adjustment_per_account & adjustment_notes
+      // - if there are adjustments: send sum per account + combined notes
+      const payload: Parameters<typeof createAdminBillingBatch>[0] = {
         group: "all",
         billing_month: billingMonth,
         due_date: dueDate,
-        adjustment_per_account: adjustmentsPerAccount,
-        adjustment_notes: adjustmentNotes || null,
-      });
+      };
+
+      if (adjustments.length > 0) {
+        payload.adjustment_per_account = adjustmentsPerAccount;
+        payload.adjustment_notes = adjustments
+          .map((a) => a.description)
+          .join("; ");
+      }
+
+      await createAdminBillingBatch(payload);
 
       alert(
         `Batch billing successfully created for ${humanAccounts} account(s).`
@@ -494,6 +504,13 @@ export default function AdminNewBillingPage() {
                     {submitting
                       ? "Processing Batch Billing..."
                       : "Process & Create Billings"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="w-full inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                  >
+                    Cancel
                   </button>
                 </div>
               </div>

@@ -1,3 +1,4 @@
+// app/components/BillingsTab.tsx
 import { Billing } from "@/lib/types";
 import { Badge } from "./ui/Badge";
 import {
@@ -11,12 +12,19 @@ type BillingsTabProps = {
 };
 
 export function BillingsTab({ bills }: BillingsTabProps) {
+  const today = new Date();
+
   return (
     <>
       {/* Mobile cards */}
       <ul className="sm:hidden divide-y divide-gray-100">
         {bills.map((b) => {
-          const status = normalizeBillingStatus(b.status);
+          const normalized = normalizeBillingStatus(b.status);
+          const isPaid = normalized === "paid";
+          const dueDate = new Date(b.due_date);
+          const isOverdue = !isPaid && dueDate < today;
+          const isUnpaid = !isPaid && !isOverdue;
+
           return (
             <li key={b.id} className="p-4">
               <div className="flex items-start justify-between gap-3">
@@ -29,9 +37,9 @@ export function BillingsTab({ bills }: BillingsTabProps) {
                   </p>
                 </div>
                 <div>
-                  {status === "paid" && <Badge tone="green">Paid</Badge>}
-                  {status === "overdue" && <Badge tone="red">Overdue</Badge>}
-                  {status === "unpaid" && <Badge tone="gray">Open</Badge>}
+                  {isPaid && <Badge tone="green">Paid</Badge>}
+                  {isOverdue && <Badge tone="red">Overdue</Badge>}
+                  {isUnpaid && <Badge tone="gray">Unpaid</Badge>}
                 </div>
               </div>
               <p className="mt-3 text-lg font-semibold text-gray-900">
@@ -55,7 +63,12 @@ export function BillingsTab({ bills }: BillingsTabProps) {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {bills.map((b) => {
-              const status = normalizeBillingStatus(b.status);
+              const normalized = normalizeBillingStatus(b.status);
+              const isPaid = normalized === "paid";
+              const dueDate = new Date(b.due_date);
+              const isOverdue = !isPaid && dueDate < today;
+              const isUnpaid = !isPaid && !isOverdue;
+
               return (
                 <tr key={b.id} className="[&>td]:py-4 [&>td]:px-4">
                   <td className="text-gray-900">
@@ -64,9 +77,9 @@ export function BillingsTab({ bills }: BillingsTabProps) {
                   <td className="text-gray-900">{formatCurrency(b.amount)}</td>
                   <td className="text-gray-700">{formatDate(b.due_date)}</td>
                   <td>
-                    {status === "paid" && <Badge tone="green">Paid</Badge>}
-                    {status === "overdue" && <Badge tone="red">Overdue</Badge>}
-                    {status === "unpaid" && <Badge tone="gray">Open</Badge>}
+                    {isPaid && <Badge tone="green">Paid</Badge>}
+                    {isOverdue && <Badge tone="red">Overdue</Badge>}
+                    {isUnpaid && <Badge tone="gray">Unpaid</Badge>}
                   </td>
                 </tr>
               );

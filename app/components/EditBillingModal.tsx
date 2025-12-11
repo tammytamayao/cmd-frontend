@@ -15,8 +15,8 @@ type EditBillingModalProps = {
   onUpdated: (updated: AdminBillingForEdit) => void;
 };
 
-// Allowed billing statuses
-const STATUS_OPTIONS = ["open", "overdue", "paid"] as const;
+// Allowed billing statuses (simplified)
+const STATUS_OPTIONS = ["unpaid", "paid"] as const;
 type BillingStatusOption = (typeof STATUS_OPTIONS)[number];
 
 export function EditBillingModal({
@@ -73,13 +73,10 @@ export function EditBillingModal({
     }
   };
 
-  // Label mapping: conceptual grouping
   const getStatusLabel = (value: BillingStatusOption) => {
     switch (value) {
-      case "open":
-        return "Open";
-      case "overdue":
-        return "Overdue";
+      case "unpaid":
+        return "Unpaid";
       case "paid":
         return "Paid";
       default:
