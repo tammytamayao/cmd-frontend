@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Header from "../components/Header";
 import { getToken } from "@/lib/auth";
-import { fetchCurrentUser, createPayment } from "@/lib/api";
+import {
+  fetchCurrentUser,
+  createPayment,
+  fetchOpenOrOverdueBillings,
+} from "@/lib/api";
 import CompactDropdown from "../components/ui/CompactDropdown";
 
 type PaymentMethod = "GCASH" | "BANK_TRANSFER" | "CASH";
@@ -128,18 +132,13 @@ export default function PaymentPage() {
   useEffect(() => {
     if (!token) return;
     let alive = true;
+
     (async () => {
       try {
         setBillingsLoading(true);
-        const url = new URL(`${API_BASE}/api/v1/billings`);
-        url.searchParams.set("status", "open,overdue");
 
-        const res = await fetch(url.toString(), {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error(`billings fetch failed: ${res.status}`);
-        const json = await res.json();
+        // Use shared API helper instead of manual fetch
+        const json = await fetchOpenOrOverdueBillings(token);
         const list: Billing[] = json?.data ?? [];
 
         // Sort by due_date DESC
@@ -152,14 +151,16 @@ export default function PaymentPage() {
 
         setBillings(list);
         setBillingId(list.length > 0 ? list[0].id : null);
-      } catch {
+      } catch (err) {
         if (!alive) return;
+        console.error("Failed to load billings", err);
         setBillings([]);
         setBillingId(null);
       } finally {
         if (alive) setBillingsLoading(false);
       }
     })();
+
     return () => {
       alive = false;
     };
@@ -290,7 +291,6 @@ export default function PaymentPage() {
               </div>
 
               <div className="px-6 py-5 space-y-6">
-                {/* Read-only plan + totals */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm text-gray-500">
