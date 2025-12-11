@@ -6,7 +6,6 @@ export default function CompactDropdown<T extends string | number>({
   value,
   options,
   onChange,
-  label,
   placeholder = "Select",
   getLabel = (v) => String(v),
 }: {

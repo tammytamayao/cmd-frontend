@@ -1,5 +1,5 @@
 import { getToken } from "@/lib/auth";
-import { AdminSubscriber } from "./types";
+import { AdminBilling, AdminSubscriber, PaginationMeta } from "./types";
 
 export const API_BASE =
   process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
@@ -85,7 +85,7 @@ export async function fetchOpenOrOverdueBillings(token?: string | null) {
   if (!t) throw new Error("no token");
 
   const url = new URL(`${API_BASE}/api/v1/billings`);
-  url.searchParams.set("status", "open,overdue");
+  url.searchParams.set("status", "unpaid,overdue");
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${t}` },
@@ -230,4 +230,187 @@ export async function updateAdminPayment(
     throw new Error(data.error || `admin payment update failed: ${res.status}`);
   }
   return data;
+}
+
+/**
+ * ADMIN: BILLINGS (NEW)
+ *
+ * Backend:
+ *   GET /api/admin/billings
+ *     - optional ?page=
+ *     - optional ?subscriber_id=123
+ *
+ *   GET /api/admin/billings/:id
+ */
+
+/**
+ * List billings (optionally filtered by subscriber).
+ * Includes subscriber data in each billing (as per controller).
+ */
+export async function fetchAdminBillings(
+  page = 1,
+  token?: string | null,
+  subscriberId?: number | string
+): Promise<{ data: AdminBilling[]; meta: PaginationMeta }> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const url = new URL(`${API_BASE}/api/admin/billings`);
+  url.searchParams.set("page", String(page));
+
+  if (subscriberId != null) {
+    url.searchParams.set("subscriber_id", String(subscriberId));
+  }
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data.error || `admin billings failed: ${res.status}`);
+  }
+
+  return {
+    data: data.data as AdminBilling[],
+    meta: data.meta as PaginationMeta,
+  };
+}
+
+/** Get a single billing (with subscriber attached) */
+export async function fetchAdminBilling(
+  id: number | string,
+  token?: string | null
+): Promise<{ data: AdminBilling }> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/billings/${id}`, {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    throw new Error(data.error || `admin billing fetch failed: ${res.status}`);
+  }
+
+  return {
+    data: data.data as AdminBilling,
+  };
+}
+
+export async function updateAdminBilling(
+  id: number | string,
+  payload: {
+    status?: string;
+    start_date?: string | null;
+    end_date?: string | null;
+    due_date?: string | null;
+    amount?: number;
+  },
+  token?: string | null
+): Promise<{ data: AdminBilling }> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/billings/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${t}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `admin billing update failed: ${res.status}`);
+  }
+
+  return {
+    data: data.data as AdminBilling,
+  };
+}
+
+// Get batch billing summary (all subscribers by default)
+export async function fetchAdminBillingBatchSummary(
+  group: "all" | "specific" = "all",
+  subscriberIds?: (number | string)[],
+  token?: string | null
+): Promise<{ group: string; accounts_selected: number; base_amount: number }> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const url = new URL(`${API_BASE}/api/admin/billings/batch_summary`);
+  url.searchParams.set("group", group);
+
+  if (group === "specific" && subscriberIds && subscriberIds.length > 0) {
+    // send as comma-separated for simplicity
+    url.searchParams.set("subscriber_ids", subscriberIds.join(","));
+  }
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      data.error || `admin billing batch summary failed: ${res.status}`
+    );
+  }
+
+  return data as {
+    group: string;
+    accounts_selected: number;
+    base_amount: number;
+  };
+}
+
+// api.ts
+
+export async function createAdminBillingBatch(
+  payload: {
+    group?: "all" | "specific";
+    subscriber_ids?: (number | string)[];
+    billing_month?: string | null;
+    due_date: string;
+    adjustment_per_account?: number;
+    adjustment_notes?: string | null;
+  },
+  token?: string | null
+): Promise<{
+  group: string;
+  accounts_selected: number;
+  created_count: number;
+}> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/billings/batch_create`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${t}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      data.error || `admin billing batch create failed: ${res.status}`
+    );
+  }
+
+  return data as {
+    group: string;
+    accounts_selected: number;
+    created_count: number;
+  };
 }

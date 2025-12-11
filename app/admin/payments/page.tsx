@@ -70,6 +70,9 @@ export default function AdminPaymentsPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editPayment, setEditPayment] = useState<AdminPayment | null>(null);
 
+  // create modal state
+  const [createOpen, setCreateOpen] = useState(false);
+
   useEffect(() => {
     if (!token) return;
 
@@ -183,7 +186,9 @@ export default function AdminPaymentsPage() {
       <main className="flex-1 flex flex-col">
         <AdminHeader
           title="Payment Records"
-          subtitle="Review recent payments, statuses, and billing periods."
+          subtitle="Create and process payment of subscribers."
+          actionLabel="Add Payment"
+          onAction={() => setCreateOpen(true)}
         />
 
         {/* Table */}

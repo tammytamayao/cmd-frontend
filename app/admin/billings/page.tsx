@@ -1,84 +1,152 @@
-// app/admin/billings/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { getToken, clearToken } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import { getToken } from "@/lib/auth";
+import { fetchAdminBillings, fetchAdminBilling } from "@/lib/api";
+import {
+  formatDate,
+  titleCase,
+  statusBadgeClasses,
+  normalizeBillingStatus,
+} from "@/lib/helpers";
 
-type BillingCycle = "Monthly" | "Quarterly" | "Yearly";
+import type { AdminBilling } from "@/lib/types";
+import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
+import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
+import { AdminHeader } from "@/app/components/admin/AdminHeader";
+
+import { BillingDetailsModal } from "@/app/components/BillingDetailsModal";
+import {
+  EditBillingModal,
+  AdminBillingForEdit,
+} from "@/app/components/EditBillingModal";
+import { useRouter } from "next/navigation";
 
 export default function AdminBillingsPage() {
-  const router = useRouter();
-
-  // Simple auth guard error
   const [err, setErr] = useState<string | null>(null);
 
-  // Form state
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>("Monthly");
-  const [billingPeriod, setBillingPeriod] = useState<string>("October 2024");
-  const [dueDate, setDueDate] = useState<string>(
-    new Date().toISOString().slice(0, 10) // YYYY-MM-DD for <input type="date">
+  const [billings, setBillings] = useState<AdminBilling[] | null>(null);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+
+  // ---------- View details modal state ----------
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedBilling, setSelectedBilling] = useState<AdminBilling | null>(
+    null
   );
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState<string | null>(null);
 
-  const [chargeDescription, setChargeDescription] = useState("");
-  const [chargeAmount, setChargeAmount] = useState("");
-  const [charges, setCharges] = useState<
-    { description: string; amount: number }[]
-  >([]);
+  // ---------- Edit modal state ----------
+  const [editOpen, setEditOpen] = useState(false);
+  const [editBilling, setEditBilling] = useState<AdminBilling | null>(null);
 
-  // Fake summary numbers for now – later you can compute from backend
-  const totalAccountsSelected = 1250;
-  const invoicesToGenerate = 1250;
-  const baseAmountToBeBilled = 92487.5;
-  const extraChargesTotal = charges.reduce((sum, c) => sum + c.amount, 0);
-  const totalAmountToBeBilled = baseAmountToBeBilled + extraChargesTotal;
+  const router = useRouter();
 
+  const handleOpenEdit = async (id: number) => {
+    const t = getToken();
+    if (!t) {
+      alert("No token found. Please log in as staff.");
+      return;
+    }
+
+    try {
+      const res = await fetchAdminBilling(id, t);
+      setEditBilling(res.data as AdminBilling);
+      setEditOpen(true);
+    } catch (e) {
+      alert(
+        e instanceof Error ? e.message : "Failed to load billing for editing."
+      );
+    }
+  };
+
+  const handleCloseEdit = () => {
+    setEditOpen(false);
+    setEditBilling(null);
+  };
+
+  // after successful update, update local list
+  const handleBillingUpdated = (updated: AdminBillingForEdit) => {
+    setBillings((prev) =>
+      prev
+        ? prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
+        : prev
+    );
+  };
+
+  // Check token and load billings
   useEffect(() => {
     let cancelled = false;
 
-    const checkToken = () => {
+    const run = async () => {
       const t = getToken();
-      if (!t && !cancelled) {
+      if (!t) {
         setErr("No token found. Please log in as staff.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await fetchAdminBillings(page, t);
+        if (cancelled) return;
+
+        setBillings(res.data);
+        setMeta(res.meta);
+        setErr(null);
+      } catch (e) {
+        if (cancelled) return;
+        const msg = e instanceof Error ? e.message : "Failed to load billings";
+        setErr(msg);
+        setBillings([]);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
 
-    checkToken();
+    run();
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [page]);
 
-  const handleLogout = () => {
-    clearToken();
-    router.push("/");
+  // ---------- Handlers for view / edit ----------
+
+  const handleViewDetails = async (id: number) => {
+    const t = getToken();
+    if (!t) {
+      setDetailsError("No token found. Please log in as staff.");
+      return;
+    }
+
+    setDetailsOpen(true);
+    setDetailsLoading(true);
+    setDetailsError(null);
+    setSelectedBilling(null);
+
+    try {
+      const res = await fetchAdminBilling(id, t);
+      setSelectedBilling(res.data as AdminBilling);
+    } catch (e) {
+      setDetailsError(
+        e instanceof Error ? e.message : "Failed to load billing details"
+      );
+    } finally {
+      setDetailsLoading(false);
+    }
   };
 
-  const onAddCharge = () => {
-    if (!chargeDescription.trim() || !chargeAmount.trim()) return;
-
-    const value = Number(chargeAmount);
-    if (Number.isNaN(value)) return;
-
-    setCharges((prev) => [
-      ...prev,
-      { description: chargeDescription.trim(), amount: value },
-    ]);
-    setChargeDescription("");
-    setChargeAmount("");
+  const handleCloseDetails = () => {
+    setDetailsOpen(false);
+    setSelectedBilling(null);
+    setDetailsError(null);
   };
 
-  const onGeneratePreview = () => {
-    // Later: call backend endpoint to generate preview
-    alert("Generate preview not wired yet – hook to backend later.");
-  };
+  // ---------- Early states ----------
 
-  const onProcessAndSend = () => {
-    // Later: call backend to actually run batch billing
-    alert("Process & send not wired yet – hook to backend later.");
-  };
-
-  if (err) {
+  if (err && !billings) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-red-600 bg-red-50 border border-red-100 px-4 py-3 rounded-lg text-sm">
@@ -88,307 +156,195 @@ export default function AdminBillingsPage() {
     );
   }
 
+  if (!billings && !err) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-gray-600 text-sm">Loading billings…</div>
+      </div>
+    );
+  }
+
+  const today = new Date();
+
+  // ---------- Main UI ----------
+
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-200 bg-white flex flex-col">
-        <div className="flex items-center gap-3 px-5 py-6 border-b border-gray-100">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-indigo-500 to-sky-400 flex items-center justify-center text-white font-semibold">
-            A
-          </div>
-          <div>
-            <div className="text-sm font-semibold text-gray-900">Admin</div>
-            <div className="text-xs text-gray-500">Billing Department</div>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-3 py-4 space-y-1 text-sm">
-          {/* Dashboard */}
-          <button
-            type="button"
-            onClick={() => router.push("/admin/subscribers")}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50"
-          >
-            <span>🏠</span>
-            <span>Subscribers</span>
-          </button>
-
-          {/* Payments */}
-          <button
-            type="button"
-            onClick={() => router.push("/admin/payments")}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50"
-          >
-            <span>💳</span>
-            <span>Payments</span>
-          </button>
-
-          {/* Billings (current page) */}
-          <button
-            type="button"
-            onClick={() => router.push("/admin/billings")}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 font-medium"
-          >
-            <span>📄</span>
-            <span>Billings</span>
-          </button>
-
-          {/* Reports */}
-          <button
-            type="button"
-            onClick={() => router.push("/admin/reports")}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50"
-          >
-            <span>📊</span>
-            <span>Reports</span>
-          </button>
-
-          {/* Logout */}
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 mt-4"
-          >
-            <span>🚪</span>
-            <span>Logout</span>
-          </button>
-        </nav>
-
-        <div className="px-3 py-4 border-t border-gray-100 text-xs text-gray-400">
-          © {new Date().getFullYear()} CMD
-        </div>
-      </aside>
+      {/* Shared admin sidebar */}
+      <AdminSidebar active="billings" />
 
       {/* Main content */}
       <main className="flex-1 flex flex-col">
-        {/* Top bar */}
-        <header className="flex items-center justify-between px-8 py-6 border-b border-gray-200 bg-white">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Batch Billing Center
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Create and process bills for multiple subscribers at once.
-            </p>
-          </div>
-        </header>
+        {/* Shared admin header */}
+        <AdminHeader
+          title="Billing Accounts"
+          subtitle="View and process all subscribers' billing records."
+          actionLabel="Add Billing"
+          onAction={() => router.push("/admin/billings/new")}
+        />
 
+        {/* Table of billings */}
         <section className="flex-1 px-8 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] gap-6">
-            {/* Left: configuration + charges */}
-            <div className="space-y-6">
-              {/* 1. Configuration */}
-              <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
-                <div className="border-b border-gray-200 px-5 py-4">
-                  <h2 className="text-sm font-semibold text-gray-900">
-                    1. Configuration
-                  </h2>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Define the parameters for this billing run.
-                  </p>
-                </div>
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+            {loading && (!billings || billings.length === 0) && (
+              <div className="p-6 text-center text-gray-500">
+                Loading billings...
+              </div>
+            )}
 
-                <div className="px-5 py-4 space-y-4">
-                  {/* Billing cycle + period */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Billing Cycle
-                      </label>
-                      <select
-                        value={billingCycle}
-                        onChange={(e) =>
-                          setBillingCycle(e.target.value as BillingCycle)
-                        }
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
+            {billings && billings.length === 0 && !loading && (
+              <div className="p-6 text-center text-gray-500">
+                No billing records found.
+              </div>
+            )}
+
+            {billings && billings.length > 0 && (
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      SUBSCRIBER ID
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      SUBSCRIBER NAME
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      ZONE
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      BILLING PERIOD
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      DUE DATE
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                      STATUS
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
+                      ACTIONS
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {billings.map((b, idx) => {
+                    // Base status from DB (paid/unpaid)
+                    const normalized = normalizeBillingStatus(b.status);
+
+                    const isPaid = normalized === "paid";
+                    const dueDateObj = new Date(b.due_date as string);
+                    const hasValidDueDate = !Number.isNaN(dueDateObj.getTime());
+                    const isOverdue =
+                      !isPaid && hasValidDueDate && dueDateObj < today;
+                    const isUnpaid = !isPaid && !isOverdue;
+
+                    // uiStatus is what we actually show to the user
+                    const uiStatus = isPaid
+                      ? "paid"
+                      : isOverdue
+                      ? "overdue"
+                      : "unpaid";
+
+                    return (
+                      <tr
+                        key={b.id}
+                        onClick={() => handleViewDetails(b.id)}
+                        className={`${
+                          idx % 2 === 0 ? "bg-white" : "bg-gray-50/70"
+                        } cursor-pointer hover:bg-indigo-50/50 transition-colors`}
                       >
-                        <option>Monthly</option>
-                        <option>Quarterly</option>
-                        <option>Yearly</option>
-                      </select>
-                    </div>
+                        {/* Subscriber ID */}
+                        <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
+                          {b.subscriber?.serial_number || "—"}
+                        </td>
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Billing Period
-                      </label>
-                      <input
-                        value={billingPeriod}
-                        onChange={(e) => setBillingPeriod(e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
-                        placeholder="e.g., October 2024"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Due date */}
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Invoice Due Date
-                    </label>
-                    <input
-                      type="date"
-                      value={dueDate}
-                      onChange={(e) => setDueDate(e.target.value)}
-                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. Charges & Adjustments */}
-              <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
-                <div className="border-b border-gray-200 px-5 py-4">
-                  <h2 className="text-sm font-semibold text-gray-900">
-                    2. Charges & Adjustments
-                  </h2>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Apply bulk charges or credits to all selected accounts.
-                  </p>
-                </div>
-
-                <div className="px-5 py-4 space-y-4">
-                  {/* Input row */}
-                  <div className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] gap-3 items-end">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Description
-                      </label>
-                      <input
-                        placeholder="e.g., Seasonal Discount"
-                        value={chargeDescription}
-                        onChange={(e) => setChargeDescription(e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Charge / Credit Amount
-                      </label>
-                      <input
-                        placeholder="Enter amount, e.g. -100.00"
-                        value={chargeAmount}
-                        onChange={(e) => setChargeAmount(e.target.value)}
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={onAddCharge}
-                      className="h-10 md:h-[38px] rounded-lg bg-gray-900 text-white text-sm font-medium px-4 hover:bg-gray-800"
-                    >
-                      Add
-                    </button>
-                  </div>
-
-                  {/* List of added charges */}
-                  {charges.length > 0 && (
-                    <div className="border-t border-gray-100 pt-3 mt-2 text-xs">
-                      <p className="mb-2 font-medium text-gray-700">
-                        Applied Adjustments
-                      </p>
-                      <ul className="space-y-1">
-                        {charges.map((c, idx) => (
-                          <li
-                            key={idx}
-                            className="flex items-center justify-between text-gray-700"
-                          >
-                            <span>{c.description}</span>
-                            <span>
-                              {c.amount >= 0 ? "+" : "-"}₱
-                              {Math.abs(c.amount).toLocaleString("en-PH", {
-                                minimumFractionDigits: 2,
-                              })}
+                        {/* Subscriber name */}
+                        <td className="px-4 py-3 align-middle">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">
+                              {b.subscriber?.last_name},{" "}
+                              {b.subscriber?.first_name}
                             </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+                          </div>
+                        </td>
 
-            {/* Right: summary + finalize */}
-            <div className="space-y-6">
-              {/* Billing run summary */}
-              <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
-                <div className="border-b border-gray-200 px-5 py-4">
-                  <h2 className="text-sm font-semibold text-gray-900">
-                    Billing Run Summary
-                  </h2>
-                </div>
+                        {/* Zone */}
+                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
+                          {b.subscriber?.zone || "—"}
+                        </td>
 
-                <div className="px-5 py-4 space-y-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 text-xs">
-                      Total Accounts Selected
-                    </span>
-                    <span className="text-base font-semibold text-gray-900">
-                      {totalAccountsSelected.toLocaleString("en-PH")}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 text-xs">
-                      Invoices to Generate
-                    </span>
-                    <span className="text-base font-semibold text-gray-900">
-                      {invoicesToGenerate.toLocaleString("en-PH")}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-500 text-xs">
-                      Total Amount to be Billed
-                    </span>
-                    <span className="text-base font-semibold text-gray-900">
-                      ₱
-                      {totalAmountToBeBilled.toLocaleString("en-PH", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                </div>
-              </div>
+                        {/* Billing period */}
+                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
+                          {b.start_date && b.end_date ? (
+                            <>
+                              {formatDate(b.start_date)} –{" "}
+                              {formatDate(b.end_date)}
+                            </>
+                          ) : (
+                            <span className="text-gray-400">N/A</span>
+                          )}
+                        </td>
 
-              {/* Finalize run */}
-              <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
-                <div className="border-b border-gray-200 px-5 py-4">
-                  <h2 className="text-sm font-semibold text-gray-900">
-                    Finalize Run
-                  </h2>
-                </div>
+                        {/* Due date */}
+                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
+                          {formatDate(b.due_date as string)}
+                        </td>
 
-                <div className="px-5 py-4 space-y-3">
-                  <button
-                    type="button"
-                    onClick={onGeneratePreview}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium px-4 py-2 hover:bg-indigo-100"
-                  >
-                    <span>👁️</span>
-                    <span>Generate Preview</span>
-                  </button>
+                        {/* Status (derived overdue where applicable) */}
+                        <td className="px-4 py-3 align-middle">
+                          {b.status ? (
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusBadgeClasses(
+                                uiStatus
+                              )}`}
+                            >
+                              {titleCase(uiStatus)}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">—</span>
+                          )}
+                        </td>
 
-                  <button
-                    type="button"
-                    onClick={onProcessAndSend}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-gray-900 text-white text-sm font-medium px-4 py-2 hover:bg-gray-800"
-                  >
-                    <span>▶</span>
-                    <span>Process &amp; Send Invoices</span>
-                  </button>
+                        {/* Actions: Edit button that does NOT trigger row click */}
+                        <td className="px-4 py-3 align-middle text-right space-x-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenEdit(b.id);
+                            }}
+                            className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
 
-                  <button
-                    type="button"
-                    className="w-full text-xs text-gray-500 hover:text-gray-700 mt-1"
-                  >
-                    Cancel Run
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* Shared pagination component */}
+            <Pagination meta={meta} onPageChange={setPage} />
           </div>
         </section>
       </main>
+
+      {/* View details modal */}
+      <BillingDetailsModal
+        open={detailsOpen}
+        onClose={handleCloseDetails}
+        loading={detailsLoading}
+        error={detailsError}
+        billing={selectedBilling}
+      />
+
+      {/* Edit billing modal */}
+      <EditBillingModal
+        open={editOpen}
+        onClose={handleCloseEdit}
+        billing={editBilling as AdminBillingForEdit | null}
+        onUpdated={handleBillingUpdated}
+      />
     </div>
   );
 }
