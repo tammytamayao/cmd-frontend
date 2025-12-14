@@ -38,9 +38,28 @@ export function BillingDetailsModal({
       ? `${formatDate(billing.start_date)} – ${formatDate(billing.end_date)}`
       : "N/A";
 
-  const normalizedStatus = billing?.status
+  const today = new Date();
+
+  const baseStatus = billing?.status
     ? normalizeBillingStatus(billing.status)
-    : "-";
+    : null;
+
+  const isPaid = baseStatus === "paid";
+
+  const dueDateObj = billing?.due_date
+    ? new Date(billing.due_date as string)
+    : null;
+  const hasValidDueDate = !!dueDateObj && !Number.isNaN(dueDateObj.getTime());
+
+  const isOverdue = !isPaid && hasValidDueDate && dueDateObj! < today;
+
+  const uiStatus: "paid" | "overdue" | "unpaid" | null = !baseStatus
+    ? null
+    : isPaid
+    ? "paid"
+    : isOverdue
+    ? "overdue"
+    : "unpaid";
 
   const billedAmount = billing?.amount ? formatCurrency(billing?.amount) : "-";
   const updatedAt = billing?.updated_at
@@ -117,13 +136,13 @@ export function BillingDetailsModal({
                   <div>
                     <dt className="text-[11px] text-gray-400">Status</dt>
                     <dd className="mt-1">
-                      {normalizedStatus ? (
+                      {uiStatus ? (
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusBadgeClasses(
-                            normalizedStatus
+                            uiStatus
                           )}`}
                         >
-                          {titleCase(normalizedStatus)}
+                          {titleCase(uiStatus)}
                         </span>
                       ) : (
                         <span className="text-xs text-gray-400">—</span>
