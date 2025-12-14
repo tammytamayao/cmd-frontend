@@ -34,11 +34,18 @@ export async function fetchCurrentUser(token?: string | null) {
   return res.json();
 }
 
-export async function fetchBillings(token?: string | null, year?: number) {
+export async function fetchBillings(
+  token?: string | null,
+  opts?: { year?: number; page?: number; perPage?: number }
+) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
+
   const url = new URL(`${API_BASE}/api/v1/billings`);
-  if (year) url.searchParams.set("year", String(year));
+
+  if (opts?.year) url.searchParams.set("year", String(opts.year));
+  if (opts?.page) url.searchParams.set("page", String(opts.page));
+  if (opts?.perPage) url.searchParams.set("per_page", String(opts.perPage));
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${t}` },
