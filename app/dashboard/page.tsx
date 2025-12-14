@@ -159,23 +159,6 @@ function DashboardInner() {
               )}
             </div>
           </div>
-
-          {/* 4️⃣ Quick Actions – always last */}
-          <div className="lg:col-span-8 order-4 lg:order-2">
-            <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
-              <ActionCard
-                title="View All Transactions"
-                subtitle="Review past billings & payments"
-                icon={<IconReceipt />}
-              />
-              <ActionCard
-                title="Get Support"
-                subtitle="Contact our team"
-                icon={<IconSupport />}
-              />
-            </div>
-          </div>
         </div>
       </main>
     </div>

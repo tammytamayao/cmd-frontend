@@ -92,7 +92,7 @@ export default function PaymentPage() {
   };
 
   const gcashBillerName = "CMD Cable Vision Inc";
-  const reference = me?.serial_number ?? "09123456789";
+  const reference = "-";
 
   // Receipt upload state
   const [file, setFile] = useState<File | null>(null);
@@ -225,7 +225,7 @@ export default function PaymentPage() {
       form.append("plan_name", planName);
       form.append("amount", String(amount));
       form.append("billing_period", billingPeriodLabel);
-      form.append("payment_method", payment_method); // Rails expects this
+      form.append("payment_method", payment_method);
 
       if (payment_method === "GCASH") {
         form.append("payee_name", gcashBillerName);

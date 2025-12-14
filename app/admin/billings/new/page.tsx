@@ -322,7 +322,7 @@ export default function AdminNewBillingPage() {
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-700">
-                        Charge / Credit Amount (per account)
+                        Charge / Discount (per account)
                       </label>
                       <input
                         type="number"

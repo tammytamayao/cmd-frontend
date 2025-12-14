@@ -223,6 +223,7 @@ export async function updateAdminPayment(
       Authorization: `Bearer ${t}`,
       "Content-Type": "application/json",
     },
+    body: JSON.stringify(payload),
   });
 
   const data = await res.json().catch(() => ({}));
