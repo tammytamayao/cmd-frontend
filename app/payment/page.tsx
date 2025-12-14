@@ -20,6 +20,7 @@ type Me = {
   last_name: string;
   full_name: string;
   plan: string;
+  package: string;
   brate: number;
   serial_number: string;
 };
@@ -70,7 +71,8 @@ export default function PaymentPage() {
   const [billingId, setBillingId] = useState<string | number | null>(null);
 
   // Derived UI fields
-  const planName = me?.plan ?? "Plan";
+  const planName = me?.plan ?? "-";
+  const packageName = me?.package ?? "-";
   const fullName = me?.full_name ?? "Customer";
 
   const selectedBilling = useMemo(
@@ -223,6 +225,7 @@ export default function PaymentPage() {
       form.append("billing_id", String(billingId));
       form.append("full_name", fullName);
       form.append("plan_name", planName);
+      form.append("package_name", packageName);
       form.append("amount", String(amount));
       form.append("billing_period", billingPeriodLabel);
       form.append("payment_method", payment_method);
@@ -305,6 +308,7 @@ export default function PaymentPage() {
                       Plan Name
                     </label>
                     <div className="mt-1 font-medium text-gray-900">
+                      {packageName}
                       {planName}
                     </div>
                   </div>
