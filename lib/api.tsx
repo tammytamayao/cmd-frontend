@@ -422,3 +422,69 @@ export async function createAdminBillingBatch(
     created_count: number;
   };
 }
+
+export async function createAdminPayment(
+  form: FormData,
+  token?: string | null
+) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/payments`, {
+    method: "POST",
+    body: form,
+    headers: { Authorization: `Bearer ${t}` },
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `admin payment create failed: ${res.status}`);
+  }
+  return data; // { data: payment }
+}
+
+/**
+ * Fetch a subscriber's billings for "select billing" dropdown.
+ * (reuse existing admin billings endpoint)
+ */
+export async function fetchAdminBillingsBySubscriber(
+  subscriberId: number | string,
+  token?: string | null,
+  opts?: {
+    status?: string;
+    page?: number;
+    perPage?: number;
+  }
+) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const url = new URL(`${API_BASE}/api/admin/billings`);
+  url.searchParams.set("subscriber_id", String(subscriberId));
+
+  if (opts?.status) {
+    url.searchParams.set("status", opts.status);
+  }
+
+  if (opts?.page) {
+    url.searchParams.set("page", String(opts.page));
+  } else {
+    url.searchParams.set("page", "1");
+  }
+
+  if (opts?.perPage) {
+    url.searchParams.set("per_page", String(opts.perPage));
+  }
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `admin billings failed: ${res.status}`);
+  }
+
+  return data as { data: AdminBilling[]; meta: PaginationMeta };
+}
