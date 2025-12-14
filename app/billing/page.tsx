@@ -22,7 +22,9 @@ function BillingsPage() {
   const router = useRouter();
 
   const [tab, setTab] = useState<"bills" | "payments">("bills");
-  const [filter, setFilter] = useState<number>(2025);
+  const currentYear = new Date().getFullYear();
+  const [filter, setFilter] = useState<number>(currentYear);
+  const [yearOptions, setYearOptions] = useState<number[]>([currentYear]);
 
   const [billings, setBillings] = useState<Billing[] | null>(null);
   const [payments, setPayments] = useState<Payment[] | null>(null);
@@ -59,6 +61,36 @@ function BillingsPage() {
     };
   }, [token]);
 
+  useEffect(() => {
+    if (!token) return;
+
+    let alive = true;
+
+    (async () => {
+      try {
+        const res = await fetchBillings(token, { page: 1, perPage: 1 });
+        if (!alive) return;
+
+        const minY = res?.meta?.min_year ?? currentYear;
+        const maxY = res?.meta?.max_year ?? currentYear;
+
+        const years = Array.from(
+          { length: maxY - minY + 1 },
+          (_, i) => maxY - i
+        );
+        setYearOptions(years);
+
+        if (filter < minY || filter > maxY) setFilter(maxY);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [currentYear, filter, token]);
+
   const loading =
     !!token &&
     (tab === "bills" ? billings === null : payments === null) &&
@@ -73,7 +105,8 @@ function BillingsPage() {
     const run = async () => {
       try {
         if (tab === "bills") {
-          const res = await fetchBillings(token, filter);
+          const res = await fetchBillings(token, { year: filter });
+
           if (!alive) return;
           setError(null);
           setBillings(res.data as Billing[]);
@@ -176,7 +209,7 @@ function BillingsPage() {
               <div className="ml-auto">
                 <YearDropdown
                   value={filter}
-                  options={[2025, 2024]}
+                  options={yearOptions}
                   onChange={(y) => setFilter(y)}
                 />
               </div>
