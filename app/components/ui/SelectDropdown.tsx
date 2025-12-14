@@ -4,11 +4,16 @@ import { useState, useRef, useEffect } from "react";
 
 type SelectDropdownProps<T extends string | number> = {
   value: T | null;
-  options: readonly T[]; // ✅ allow readonly arrays & tuples
+  options: readonly T[];
   onChange: (value: T) => void;
   getLabel?: (value: T) => string;
   placeholder?: string;
   className?: string;
+
+  // ✅ Infinite scroll (optional)
+  onLoadMore?: () => void;
+  hasMore?: boolean;
+  loadingMore?: boolean;
 };
 
 export function SelectDropdown<T extends string | number>({
@@ -18,6 +23,9 @@ export function SelectDropdown<T extends string | number>({
   getLabel,
   placeholder = "Select...",
   className = "",
+  onLoadMore,
+  hasMore = false,
+  loadingMore = false,
 }: SelectDropdownProps<T>) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -47,7 +55,9 @@ export function SelectDropdown<T extends string | number>({
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
       >
-        <span className={!value ? "text-gray-400" : ""}>{currentLabel}</span>
+        <span className={value == null ? "text-gray-400" : ""}>
+          {currentLabel}
+        </span>
         <svg
           className={`h-4 w-4 text-gray-400 transition-transform ${
             open ? "rotate-180" : ""
@@ -67,7 +77,18 @@ export function SelectDropdown<T extends string | number>({
 
       {/* Options */}
       {open && (
-        <div className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg">
+        <div
+          className="absolute z-20 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg"
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            const nearBottom =
+              el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
+
+            if (nearBottom && hasMore && !loadingMore) {
+              onLoadMore?.();
+            }
+          }}
+        >
           {options.map((opt) => {
             const label = getLabel?.(opt) ?? String(opt);
             const selected = value === opt;
@@ -89,6 +110,16 @@ export function SelectDropdown<T extends string | number>({
               </button>
             );
           })}
+
+          {loadingMore && (
+            <div className="px-3 py-2 text-xs text-gray-400">Loading more…</div>
+          )}
+
+          {!hasMore && options.length > 0 && (
+            <div className="px-3 py-2 text-xs text-gray-300">
+              No more results
+            </div>
+          )}
         </div>
       )}
     </div>
