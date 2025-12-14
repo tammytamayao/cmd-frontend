@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import FieldRow from "../components/ui/FieldRow";
-import ActionCard from "../components/ui/ActionCard";
-import { IconReceipt, IconSupport } from "../components/ui/Icons";
+// import ActionCard from "../components/ui/ActionCard";
+// import { IconReceipt, IconSupport } from "../components/ui/Icons";
 import { getToken, clearToken } from "@/lib/auth";
 import { fetchCurrentUser } from "@/lib/api";
 
@@ -24,7 +24,7 @@ type Me = {
   amount_due: number;
   due_on: string;
   zone: string;
-  date_installed: string; // ISO date string from API
+  date_installed: string;
 };
 
 function DashboardInner() {
@@ -70,9 +70,9 @@ function DashboardInner() {
 
   const dueDate = (() => {
     if (!me.due_on) return "";
-    const base = new Date(me.due_on);
-    const fourteenth = new Date(base.getFullYear(), base.getMonth(), 14);
-    return fourteenth.toLocaleDateString("en-PH", {
+    const d = new Date(me.due_on);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-PH", {
       day: "2-digit",
       month: "short",
       year: "numeric",
