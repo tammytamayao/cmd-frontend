@@ -134,7 +134,7 @@ export function SubscriberDetailsModal({
                   <ReadOnlyValue value={subscriber.collector ?? "-"} />
                 </Field>
 
-                <Field label="Date Installed">
+                <Field label="Installation Date">
                   <ReadOnlyValue
                     value={
                       subscriber.date_installed

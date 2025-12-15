@@ -331,7 +331,7 @@ export function EditSubscriberModal({
                   />
                 </Field>
 
-                <Field label="Date Installed">
+                <Field label="Installation Date">
                   <input
                     required
                     type="date"

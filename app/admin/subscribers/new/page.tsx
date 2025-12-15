@@ -286,7 +286,7 @@ export default function AdminNewSubscriberPage() {
                   />
                 </Field>
 
-                <Field label="Date Installed">
+                <Field label="Installation Date">
                   <input
                     type="date"
                     value={form.date_installed}

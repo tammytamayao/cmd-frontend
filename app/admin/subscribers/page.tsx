@@ -157,12 +157,7 @@ export default function AdminDashboardPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     PACKAGE SPEED
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    AMOUNT
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    ACTIONS
-                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500"></th>
                 </tr>
               </thead>
 
@@ -211,13 +206,6 @@ export default function AdminDashboardPage() {
 
                     <td className="px-4 py-3 text-sm text-gray-900">
                       Up to {s.package_speed ? `${s.package_speed}` : "0"} mbps
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      ₱
-                      {(s.brate ?? 0).toLocaleString("en-PH", {
-                        minimumFractionDigits: 2,
-                      })}
                     </td>
 
                     <td className="px-4 py-3 text-sm">
