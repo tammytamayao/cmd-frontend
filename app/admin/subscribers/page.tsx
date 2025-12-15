@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
-import { fetchAllSubscribers } from "@/lib/api";
+import { fetchAllSubscribers, fetchAdminSubscriber } from "@/lib/api";
 import { AdminSubscriber } from "@/lib/types";
 import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 import { formatDate } from "@/lib/helpers";
 import { useRouter } from "next/navigation";
+import { EditSubscriberModal } from "@/app/components/EditSubscriberModal";
+import { SubscriberDetailsModal } from "@/app/components/SubscriberDetailsModal";
 
 type Stats = {
   period_start: string;
@@ -28,6 +30,13 @@ export default function AdminDashboardPage() {
 
   const router = useRouter();
 
+  const [editing, setEditing] = useState<AdminSubscriber | null>(null);
+
+  // details modal state
+  const [viewing, setViewing] = useState<AdminSubscriber | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewErr, setViewErr] = useState<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -35,9 +44,7 @@ export default function AdminDashboardPage() {
       const t = getToken();
 
       if (!t) {
-        if (!cancelled) {
-          setErr("No token found. Please log in as staff.");
-        }
+        if (!cancelled) setErr("No token found. Please log in as staff.");
         return;
       }
 
@@ -72,6 +79,30 @@ export default function AdminDashboardPage() {
       String(s.id).includes(q)
     );
   });
+
+  async function openDetails(s: AdminSubscriber) {
+    setViewErr(null);
+    setViewLoading(true);
+
+    // show something immediately (fast), then replace with fresh data
+    setViewing(s);
+
+    const token = getToken();
+    if (!token) {
+      setViewErr("No token found. Please log in as staff.");
+      setViewLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetchAdminSubscriber(s.id, token);
+      setViewing(res.data);
+    } catch (e) {
+      setViewErr(e instanceof Error ? e.message : "Failed to load subscriber");
+    } finally {
+      setViewLoading(false);
+    }
+  }
 
   if (err) {
     return (
@@ -129,13 +160,17 @@ export default function AdminDashboardPage() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
                     AMOUNT
                   </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
+                    ACTIONS
+                  </th>
                 </tr>
               </thead>
+
               <tbody>
                 {filteredSubs && filteredSubs.length === 0 && (
                   <tr>
                     <td
-                      colSpan={7}
+                      colSpan={8}
                       className="px-4 py-6 text-center text-sm text-gray-500"
                     >
                       No subscribers match your search.
@@ -146,7 +181,11 @@ export default function AdminDashboardPage() {
                 {filteredSubs?.map((s, idx) => (
                   <tr
                     key={s.id}
-                    className={idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"}
+                    onClick={() => openDetails(s)}
+                    className={[
+                      idx % 2 === 0 ? "bg-white" : "bg-gray-50/60",
+                      "cursor-pointer hover:bg-indigo-50/40",
+                    ].join(" ")}
                   >
                     <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
                       {s.serial_number ||
@@ -169,6 +208,7 @@ export default function AdminDashboardPage() {
                       {s.package ? `${s.package}` : "-"}
                       {s.plan ? `${s.plan}` : "-"}
                     </td>
+
                     <td className="px-4 py-3 text-sm text-gray-900">
                       Up to {s.package_speed ? `${s.package_speed}` : "0"} mbps
                     </td>
@@ -179,6 +219,19 @@ export default function AdminDashboardPage() {
                         minimumFractionDigits: 2,
                       })}
                     </td>
+
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation(); // ✅ prevent row click
+                          setEditing(s);
+                        }}
+                        className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        Edit
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -187,6 +240,34 @@ export default function AdminDashboardPage() {
             <Pagination meta={meta} onPageChange={setPage} />
           </div>
         </section>
+
+        {/* DETAILS MODAL */}
+        <SubscriberDetailsModal
+          open={!!viewing}
+          subscriber={viewing}
+          onClose={() => {
+            setViewing(null);
+            setViewErr(null);
+            setViewLoading(false);
+          }}
+          loading={viewLoading}
+          error={viewErr}
+        />
+
+        {/* EDIT MODAL */}
+        <EditSubscriberModal
+          open={!!editing}
+          subscriber={editing}
+          onClose={() => setEditing(null)}
+          onUpdated={(updated: AdminSubscriber) => {
+            setSubs((prev) =>
+              prev ? prev.map((x) => (x.id === updated.id ? updated : x)) : prev
+            );
+
+            // keep details modal in sync if it’s open for same subscriber
+            setViewing((prev) => (prev?.id === updated.id ? updated : prev));
+          }}
+        />
       </main>
     </div>
   );
