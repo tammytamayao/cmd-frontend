@@ -145,17 +145,26 @@ export function EditSubscriberModal({
 
   const canSave = useMemo(() => {
     if (!form) return false;
+
     return (
-      form.first_name.trim().length > 0 &&
-      form.last_name.trim().length > 0 &&
-      form.phone_number.trim().length > 0
+      form.last_name.trim() !== "" &&
+      form.first_name.trim() !== "" &&
+      form.phone_number.trim() !== "" &&
+      form.zone.trim() !== "" &&
+      form.collector.trim() !== "" &&
+      form.date_installed.trim() !== "" &&
+      form.serial_number.trim() !== "" &&
+      form.package.trim() !== "" &&
+      form.plan.trim() !== "" &&
+      form.brate.trim() !== "" &&
+      form.package_speed.trim() !== "" &&
+      form.mc_address.trim() !== "" &&
+      form.stb.trim() !== "" &&
+      form.cas.trim() !== ""
     );
   }, [form]);
 
   if (!open || !subscriber || !form) return null;
-
-  const subLabel =
-    subscriber.serial_number || `SUB-${String(subscriber.id).padStart(5, "0")}`;
 
   async function save() {
     if (!subscriber || !form) return; // hard guard
@@ -177,22 +186,22 @@ export function EditSubscriberModal({
         last_name: form.last_name.trim(),
         first_name: form.first_name.trim(),
         phone_number: form.phone_number.trim(),
-        alternative_phone: form.alternative_phone || null,
-        zone: form.zone || null,
+        alternative_phone: form.alternative_phone.trim(),
+        zone: form.zone.trim(),
 
-        collector: form.collector || null,
-        date_installed: form.date_installed || null,
-        serial_number: form.serial_number || null,
+        collector: form.collector.trim(),
+        date_installed: form.date_installed,
+        serial_number: form.serial_number.trim(),
         tvconnect: !!form.tvconnect,
 
-        package: form.package || null,
-        plan: form.plan || null,
-        brate: form.brate ? Number(form.brate) : null,
-        package_speed: form.package_speed ? Number(form.package_speed) : null,
+        package: form.package.trim(),
+        plan: form.plan.trim(),
+        brate: Number(form.brate),
+        package_speed: Number(form.package_speed),
 
-        mc_address: form.mc_address || null,
-        stb: form.stb || null,
-        cas: form.cas || null,
+        mc_address: form.mc_address.trim(),
+        stb: form.stb.trim(),
+        cas: form.cas.trim(),
 
         requires_password_change: !!form.requires_password_change,
       };
@@ -290,6 +299,7 @@ export function EditSubscriberModal({
 
                 <Field label="Zone / Address">
                   <input
+                    required
                     value={form.zone}
                     onChange={(e) =>
                       setForm((p) => (p ? { ...p, zone: e.target.value } : p))
@@ -309,6 +319,7 @@ export function EditSubscriberModal({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Field label="Collector">
                   <input
+                    required
                     value={form.collector}
                     onChange={(e) =>
                       setForm((p) =>
@@ -322,6 +333,7 @@ export function EditSubscriberModal({
 
                 <Field label="Date Installed">
                   <input
+                    required
                     type="date"
                     value={form.date_installed}
                     onChange={(e) =>
@@ -335,6 +347,7 @@ export function EditSubscriberModal({
 
                 <Field label="Subscriber Number">
                   <input
+                    required
                     value={form.serial_number}
                     onChange={(e) =>
                       setForm((p) =>
@@ -396,6 +409,7 @@ export function EditSubscriberModal({
 
                 <Field label="Amount (brate)">
                   <input
+                    required
                     inputMode="numeric"
                     value={form.brate}
                     onChange={(e) =>
@@ -408,6 +422,7 @@ export function EditSubscriberModal({
 
                 <Field label="Package Speed (Mbps)">
                   <input
+                    required
                     inputMode="numeric"
                     value={form.package_speed}
                     onChange={(e) =>
@@ -422,6 +437,7 @@ export function EditSubscriberModal({
 
                 <Field label="MC Address">
                   <input
+                    required
                     value={form.mc_address}
                     onChange={(e) =>
                       setForm((p) =>
@@ -435,6 +451,7 @@ export function EditSubscriberModal({
 
                 <Field label="STB">
                   <input
+                    required
                     value={form.stb}
                     onChange={(e) =>
                       setForm((p) => (p ? { ...p, stb: e.target.value } : p))
@@ -446,6 +463,7 @@ export function EditSubscriberModal({
 
                 <Field label="CAS">
                   <input
+                    required
                     value={form.cas}
                     onChange={(e) =>
                       setForm((p) => (p ? { ...p, cas: e.target.value } : p))
