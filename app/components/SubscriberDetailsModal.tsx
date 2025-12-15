@@ -79,7 +79,7 @@ export function SubscriberDetailsModal({
           {/* Header (same vibe as Edit) */}
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">
-              Edit Subscriber
+              Subscriber Details
             </h2>
           </div>
 
@@ -176,7 +176,7 @@ export function SubscriberDetailsModal({
 
                 <Field label="Package Speed (Mbps)">
                   <ReadOnlyValue
-                    value={`Up to ${subscriber.package_speed ?? 0} mbps`}
+                    value={`Up to ${subscriber.package_speed ?? 0} Mbps`}
                   />
                 </Field>
 
