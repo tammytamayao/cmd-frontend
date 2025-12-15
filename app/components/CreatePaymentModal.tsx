@@ -417,20 +417,147 @@ export function CreatePaymentModal({ open, onClose, onCreated }: Props) {
                 placeholder="e.g. INV-2025-0012"
               />
             </div>
-
             {/* Receipt */}
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-2">
               <label className="text-xs font-medium text-gray-700">
-                Receipt (required)
+                Receipt <span className="text-red-500">(required)</span>
               </label>
+
+              {/* hidden input */}
               <input
+                id="admin-receipt-input"
                 type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => setReceiptFile(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm"
+                accept="image/png,image/jpeg,application/pdf"
+                className="sr-only"
+                onChange={(e) => {
+                  setError(null);
+
+                  const f = e.target.files?.[0] ?? null;
+                  if (!f) {
+                    setReceiptFile(null);
+                    return;
+                  }
+
+                  const allowed = [
+                    "image/png",
+                    "image/jpeg",
+                    "application/pdf",
+                  ];
+                  const maxBytes = 5 * 1024 * 1024; // 5MB
+
+                  if (!allowed.includes(f.type)) {
+                    setError("Only PNG, JPG, or PDF files are allowed.");
+                    e.currentTarget.value = "";
+                    setReceiptFile(null);
+                    return;
+                  }
+
+                  if (f.size > maxBytes) {
+                    setError("File is larger than 5MB.");
+                    e.currentTarget.value = "";
+                    setReceiptFile(null);
+                    return;
+                  }
+
+                  setReceiptFile(f);
+                }}
               />
+
+              {/* dropzone */}
+              <label
+                htmlFor="admin-receipt-input"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setError(null);
+
+                  const f = e.dataTransfer.files?.[0];
+                  if (!f) return;
+
+                  const allowed = [
+                    "image/png",
+                    "image/jpeg",
+                    "application/pdf",
+                  ];
+                  const maxBytes = 5 * 1024 * 1024;
+
+                  if (!allowed.includes(f.type)) {
+                    setError("Only PNG, JPG, or PDF files are allowed.");
+                    return;
+                  }
+
+                  if (f.size > maxBytes) {
+                    setError("File is larger than 5MB.");
+                    return;
+                  }
+
+                  setReceiptFile(f);
+                }}
+                className={`group grid place-items-center rounded-xl border border-dashed px-4 py-5 transition-colors cursor-pointer
+      ${
+        receiptFile
+          ? "border-indigo-300 bg-indigo-50/40"
+          : "border-gray-300 bg-gray-50 hover:bg-gray-100"
+      }`}
+              >
+                <div className="flex flex-col items-center text-center gap-2">
+                  <div
+                    className={`h-10 w-10 rounded-full grid place-items-center transition-colors
+          ${
+            receiptFile
+              ? "bg-indigo-100 text-indigo-700"
+              : "bg-gray-200 text-gray-600 group-hover:bg-gray-300"
+          }`}
+                  >
+                    {/* upload icon */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      className="h-5 w-5"
+                    >
+                      <path d="M12 16a1 1 0 0 1-1-1V7.414L8.707 9.707a1 1 0 1 1-1.414-1.414l4-4a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1-1.414 1.414L13 7.414V15a1 1 0 0 1-1 1Z" />
+                      <path d="M4 14a1 1 0 0 1 1 1v3h14v-3a1 1 0 1 1 2 0v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z" />
+                    </svg>
+                  </div>
+
+                  <div className="text-sm font-medium text-gray-800">
+                    {receiptFile
+                      ? "Receipt selected"
+                      : "Click to upload or drag & drop"}
+                  </div>
+
+                  <div className="text-[11px] text-gray-500">
+                    PNG / JPG / PDF • max 5MB
+                  </div>
+                </div>
+              </label>
+
+              {/* selected file row */}
+              {receiptFile && (
+                <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs">
+                  <div className="min-w-0">
+                    <div className="truncate text-gray-900 font-medium">
+                      {receiptFile.name}
+                    </div>
+                    <div className="text-[11px] text-gray-500">
+                      {(receiptFile.size / (1024 * 1024)).toFixed(2)} MB •{" "}
+                      {receiptFile.type === "application/pdf" ? "PDF" : "Image"}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setReceiptFile(null)}
+                    className="ml-3 inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-200"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+
               <p className="text-[11px] text-gray-400">
-                Upload a receipt image or PDF.
+                Upload a receipt image or PDF for verification.
               </p>
             </div>
           </div>
