@@ -205,7 +205,7 @@ export default function AdminDashboardPage() {
                     </td>
 
                     <td className="px-4 py-3 text-sm text-gray-900">
-                      Up to {s.package_speed ? `${s.package_speed}` : "0"} mbps
+                      Up to {s.package_speed ? `${s.package_speed}` : "0"} Mbps
                     </td>
 
                     <td className="px-4 py-3 text-sm">
