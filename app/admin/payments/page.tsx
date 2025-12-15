@@ -13,6 +13,7 @@ import {
   EditPaymentModal,
   AdminPayment as AdminPaymentForEdit,
 } from "@/app/components/EditPaymentModal";
+import { CreatePaymentModal } from "@/app/components/CreatePaymentModal";
 
 // ---------------- Types ----------------
 
@@ -317,6 +318,16 @@ export default function AdminPaymentsPage() {
         onClose={handleCloseEdit}
         payment={editPayment as AdminPaymentForEdit | null}
         onUpdated={handlePaymentUpdated}
+      />
+
+      {/* Edit payment modal */}
+      <CreatePaymentModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(newPayment: AdminPayment) => {
+          // put new payment on top
+          setPayments((prev) => (prev ? [newPayment, ...prev] : [newPayment]));
+        }}
       />
     </div>
   );
