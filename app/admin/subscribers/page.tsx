@@ -8,6 +8,7 @@ import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 import { formatDate } from "@/lib/helpers";
+import { useRouter } from "next/navigation";
 
 type Stats = {
   period_start: string;
@@ -24,6 +25,8 @@ export default function AdminDashboardPage() {
   const [page, setPage] = useState(1);
   const [err, setErr] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+
+  const router = useRouter();
 
   useEffect(() => {
     let cancelled = false;
@@ -96,6 +99,8 @@ export default function AdminDashboardPage() {
         <AdminHeader
           title="Subscriber Accounts"
           subtitle="Overview of subscriber information."
+          actionLabel="Add Subscriber"
+          onAction={() => router.push("/admin/subscribers/new")}
         />
 
         <section className="flex-1 px-8 py-6 space-y-6">
