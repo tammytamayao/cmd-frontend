@@ -4,12 +4,21 @@ export type AdminSubscriber = {
   first_name: string | null;
   last_name: string | null;
   phone_number: string | null;
+  alternative_phone?: string | null;
+  collector?: string | null;
   zone: string | null;
   plan: string | null;
   brate: number | null;
-  package: number | null;
+  package: string | null; // <- your DB schema says string
   package_speed: number | null;
   date_installed: string | null;
+  tvconnect?: boolean | null;
+  mc_address?: string | null;
+  stb?: string | null;
+  cas?: string | null;
+  requires_password_change?: boolean | null;
+
+  // (keep these if you use them elsewhere)
   latest_billing_amount: number | null;
   latest_billing_due_date: string | null;
   latest_billing_status: string | null;

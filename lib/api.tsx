@@ -531,3 +531,69 @@ export async function createAdminSubscriber(
   }
   return data as { data: AdminSubscriber };
 }
+
+export async function updateAdminSubscriber(
+  id: number | string,
+  payload: {
+    collector?: string | null;
+    zone?: string | null;
+    date_installed?: string | null;
+    last_name?: string | null;
+    first_name?: string | null;
+    phone_number?: string | null;
+    alternative_phone?: string | null;
+    serial_number?: string | null;
+    tvconnect?: boolean;
+    package?: string | null;
+    plan?: string | null;
+    brate?: number | null;
+    mc_address?: string | null;
+    stb?: string | null;
+    cas?: string | null;
+    package_speed?: number | null;
+    requires_password_change?: boolean;
+  },
+  token?: string | null
+) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/subscribers/${id}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${t}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ subscriber: payload }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      data.error || `admin subscriber update failed: ${res.status}`
+    );
+  }
+  return data as { data: AdminSubscriber };
+}
+
+export async function fetchAdminSubscriber(
+  id: number | string,
+  token?: string | null
+): Promise<{ data: AdminSubscriber }> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/subscribers/${id}`, {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      data.error || `admin subscriber fetch failed: ${res.status}`
+    );
+  }
+
+  return data as { data: AdminSubscriber };
+}

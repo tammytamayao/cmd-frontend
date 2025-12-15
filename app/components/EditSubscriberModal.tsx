@@ -1,14 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
-import { AdminHeader } from "@/app/components/admin/AdminHeader";
-import { createAdminSubscriber } from "@/lib/api";
+import { useEffect, useMemo, useState } from "react";
+import { AdminSubscriber } from "@/lib/types";
 import { getToken } from "@/lib/auth";
+import { updateAdminSubscriber } from "@/lib/api";
 import { SelectDropdown } from "@/app/components/ui/SelectDropdown";
 
-type FormState = {
+type EditForm = {
   // Personal
   last_name: string;
   first_name: string;
@@ -36,30 +34,33 @@ type FormState = {
   requires_password_change: boolean;
 };
 
-const initial: FormState = {
-  last_name: "",
-  first_name: "",
-  phone_number: "",
-  alternative_phone: "",
-  zone: "",
+function toEditForm(s: AdminSubscriber): EditForm {
+  return {
+    last_name: s.last_name ?? "",
+    first_name: s.first_name ?? "",
+    phone_number: s.phone_number ?? "",
+    alternative_phone: (s.alternative_phone ?? "") as string,
+    zone: s.zone ?? "",
 
-  collector: "",
-  date_installed: "",
-  serial_number: "",
-  tvconnect: false,
+    collector: (s.collector ?? "") as string,
+    date_installed: s.date_installed ?? "",
+    serial_number: s.serial_number ?? "",
+    tvconnect: !!s.tvconnect,
 
-  package: "",
-  plan: "",
-  brate: "",
-  package_speed: "",
+    package: (s.package ?? "") as string,
+    plan: s.plan ?? "",
+    brate: s.brate != null ? String(s.brate) : "",
+    package_speed: s.package_speed != null ? String(s.package_speed) : "",
 
-  mc_address: "",
-  stb: "",
-  cas: "",
+    mc_address: (s.mc_address ?? "") as string,
+    stb: (s.stb ?? "") as string,
+    cas: (s.cas ?? "") as string,
 
-  requires_password_change: true,
-};
+    requires_password_change: !!s.requires_password_change,
+  };
+}
 
+/** same helpers you used on New Subscriber page */
 function Field({
   label,
   children,
@@ -115,25 +116,59 @@ const PACKAGE_PLAN_OPTIONS = [
 
 type PackagePlanOption = (typeof PACKAGE_PLAN_OPTIONS)[number];
 
-export default function AdminNewSubscriberPage() {
-  const router = useRouter();
-  const [form, setForm] = useState<FormState>(initial);
+export function EditSubscriberModal({
+  open,
+  subscriber,
+  onClose,
+  onUpdated,
+}: {
+  open: boolean;
+  subscriber: AdminSubscriber | null;
+  onClose: () => void;
+  onUpdated: (updated: AdminSubscriber) => void;
+}) {
+  const [form, setForm] = useState<EditForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  const canSubmit = useMemo(() => {
+  useEffect(() => {
+    if (!open || !subscriber) {
+      setForm(null);
+      setErr(null);
+      setSaving(false);
+      return;
+    }
+    setForm(toEditForm(subscriber));
+    setErr(null);
+    setSaving(false);
+  }, [open, subscriber, subscriber?.id]);
+
+  const canSave = useMemo(() => {
+    if (!form) return false;
+
     return (
-      form.first_name.trim().length > 0 &&
-      form.last_name.trim().length > 0 &&
-      form.phone_number.trim().length > 0
+      form.last_name.trim() !== "" &&
+      form.first_name.trim() !== "" &&
+      form.phone_number.trim() !== "" &&
+      form.zone.trim() !== "" &&
+      form.collector.trim() !== "" &&
+      form.date_installed.trim() !== "" &&
+      form.serial_number.trim() !== "" &&
+      form.package.trim() !== "" &&
+      form.plan.trim() !== "" &&
+      form.brate.trim() !== "" &&
+      form.package_speed.trim() !== "" &&
+      form.mc_address.trim() !== "" &&
+      form.stb.trim() !== "" &&
+      form.cas.trim() !== ""
     );
-  }, [form.first_name, form.last_name, form.phone_number]);
+  }, [form]);
 
-  const update = <K extends keyof FormState>(key: K, val: FormState[K]) =>
-    setForm((p) => ({ ...p, [key]: val }));
+  if (!open || !subscriber || !form) return null;
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function save() {
+    if (!subscriber || !form) return; // hard guard
+
     setErr(null);
 
     const token = getToken();
@@ -142,71 +177,60 @@ export default function AdminNewSubscriberPage() {
       return;
     }
 
-    if (!canSubmit) {
-      setErr("Please fill in First Name, Last Name, and Phone Number.");
-      return;
-    }
-
-    setSaving(true);
     try {
+      setSaving(true);
+
+      const sub = subscriber; // ← IMPORTANT
+
       const payload = {
-        // personal
         last_name: form.last_name.trim(),
         first_name: form.first_name.trim(),
         phone_number: form.phone_number.trim(),
-        alternative_phone: form.alternative_phone || null,
-        zone: form.zone || null,
+        alternative_phone: form.alternative_phone.trim(),
+        zone: form.zone.trim(),
 
-        // registration
-        collector: form.collector || null,
-        date_installed: form.date_installed || null,
-        serial_number: form.serial_number || null,
+        collector: form.collector.trim(),
+        date_installed: form.date_installed,
+        serial_number: form.serial_number.trim(),
         tvconnect: !!form.tvconnect,
 
-        // plan
-        package: form.package || null,
-        plan: form.plan || null,
-        brate: form.brate ? Number(form.brate) : null,
-        package_speed: form.package_speed ? Number(form.package_speed) : null,
+        package: form.package.trim(),
+        plan: form.plan.trim(),
+        brate: Number(form.brate),
+        package_speed: Number(form.package_speed),
 
-        // device IDs
-        mc_address: form.mc_address || null,
-        stb: form.stb || null,
-        cas: form.cas || null,
+        mc_address: form.mc_address.trim(),
+        stb: form.stb.trim(),
+        cas: form.cas.trim(),
 
         requires_password_change: !!form.requires_password_change,
       };
 
-      await createAdminSubscriber(payload, token);
-      router.push("/admin/subscribers");
+      const res = await updateAdminSubscriber(sub.id, payload, token);
+      onUpdated(res.data);
+      onClose();
     } catch (e) {
-      setErr(e instanceof Error ? e.message : "Failed to create subscriber");
+      setErr(e instanceof Error ? e.message : "Failed to update subscriber");
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      <AdminSidebar active="subscribers" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* backdrop */}
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
-      <main className="flex-1 flex flex-col">
-        <AdminHeader
-          title="Subscriber Registration"
-          subtitle="Create new subscriber and its additional information"
-          rightSlot={
-            <button
-              type="button"
-              onClick={() => router.push("/admin/subscribers")}
-              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors"
-            >
-              Back to List
-            </button>
-          }
-        />
+      <div className="relative w-full max-w-5xl mx-4">
+        {/* header strip (matches your admin look) */}
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Edit Subscriber
+            </h2>
+          </div>
 
-        <section className="flex-1 px-8 py-6">
-          <form onSubmit={onSubmit} className="max-w-5xl space-y-6">
+          <div className="p-6 max-h-[75vh] overflow-auto space-y-6 bg-gray-50">
             {err && (
               <div className="text-sm text-red-700 bg-red-50 border border-red-100 px-4 py-3 rounded-lg">
                 {err}
@@ -223,7 +247,11 @@ export default function AdminNewSubscriberPage() {
                   <input
                     required
                     value={form.last_name}
-                    onChange={(e) => update("last_name", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) =>
+                        p ? { ...p, last_name: e.target.value } : p
+                      )
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="TAMAYAO"
                   />
@@ -233,7 +261,11 @@ export default function AdminNewSubscriberPage() {
                   <input
                     required
                     value={form.first_name}
-                    onChange={(e) => update("first_name", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) =>
+                        p ? { ...p, first_name: e.target.value } : p
+                      )
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="PRINCESS CONNIE"
                   />
@@ -243,7 +275,11 @@ export default function AdminNewSubscriberPage() {
                   <input
                     required
                     value={form.phone_number}
-                    onChange={(e) => update("phone_number", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) =>
+                        p ? { ...p, phone_number: e.target.value } : p
+                      )
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="0995xxxxxxx"
                   />
@@ -253,7 +289,9 @@ export default function AdminNewSubscriberPage() {
                   <input
                     value={form.alternative_phone}
                     onChange={(e) =>
-                      update("alternative_phone", e.target.value)
+                      setForm((p) =>
+                        p ? { ...p, alternative_phone: e.target.value } : p
+                      )
                     }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
@@ -261,8 +299,11 @@ export default function AdminNewSubscriberPage() {
 
                 <Field label="Zone / Address">
                   <input
+                    required
                     value={form.zone}
-                    onChange={(e) => update("zone", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) => (p ? { ...p, zone: e.target.value } : p))
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="e.g. DANGAN RM"
                   />
@@ -276,11 +317,15 @@ export default function AdminNewSubscriberPage() {
               subtitle="Installation, plan details, and device identifiers"
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Registration */}
                 <Field label="Collector">
                   <input
+                    required
                     value={form.collector}
-                    onChange={(e) => update("collector", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) =>
+                        p ? { ...p, collector: e.target.value } : p
+                      )
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="e.g. MERVIN PEREZ"
                   />
@@ -288,17 +333,27 @@ export default function AdminNewSubscriberPage() {
 
                 <Field label="Installation Date">
                   <input
+                    required
                     type="date"
                     value={form.date_installed}
-                    onChange={(e) => update("date_installed", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) =>
+                        p ? { ...p, date_installed: e.target.value } : p
+                      )
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                   />
                 </Field>
 
                 <Field label="Subscriber Number">
                   <input
+                    required
                     value={form.serial_number}
-                    onChange={(e) => update("serial_number", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) =>
+                        p ? { ...p, serial_number: e.target.value } : p
+                      )
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="105959-210"
                   />
@@ -320,13 +375,14 @@ export default function AdminNewSubscriberPage() {
                         placeholder="Select…"
                         onChange={(opt: string) => {
                           const v = String(opt).trim().toUpperCase();
-
                           if (v.length === 1) {
-                            update("package", v);
-                            update("plan", "");
+                            setForm((p) =>
+                              p ? { ...p, package: v, plan: "" } : p
+                            );
                           } else {
-                            update("package", v[0]);
-                            update("plan", v.slice(1));
+                            setForm((p) =>
+                              p ? { ...p, package: v[0], plan: v.slice(1) } : p
+                            );
                           }
                         }}
                         getLabel={(v: string) => String(v)}
@@ -339,7 +395,9 @@ export default function AdminNewSubscriberPage() {
                           type="checkbox"
                           checked={form.tvconnect}
                           onChange={(e) =>
-                            update("tvconnect", e.target.checked)
+                            setForm((p) =>
+                              p ? { ...p, tvconnect: e.target.checked } : p
+                            )
                           }
                           className="h-4 w-4"
                         />
@@ -351,29 +409,41 @@ export default function AdminNewSubscriberPage() {
 
                 <Field label="Amount (brate)">
                   <input
+                    required
                     inputMode="numeric"
                     value={form.brate}
-                    onChange={(e) => update("brate", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) => (p ? { ...p, brate: e.target.value } : p))
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="2299"
                   />
                 </Field>
 
-                <Field label="Package Speed (mbps)">
+                <Field label="Package Speed (Mbps)">
                   <input
+                    required
                     inputMode="numeric"
                     value={form.package_speed}
-                    onChange={(e) => update("package_speed", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) =>
+                        p ? { ...p, package_speed: e.target.value } : p
+                      )
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="320"
                   />
                 </Field>
 
-                {/* Device IDs */}
                 <Field label="MC Address">
                   <input
+                    required
                     value={form.mc_address}
-                    onChange={(e) => update("mc_address", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) =>
+                        p ? { ...p, mc_address: e.target.value } : p
+                      )
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="04AB084D5174"
                   />
@@ -381,8 +451,11 @@ export default function AdminNewSubscriberPage() {
 
                 <Field label="STB">
                   <input
+                    required
                     value={form.stb}
-                    onChange={(e) => update("stb", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) => (p ? { ...p, stb: e.target.value } : p))
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="S200959895"
                   />
@@ -390,27 +463,41 @@ export default function AdminNewSubscriberPage() {
 
                 <Field label="CAS">
                   <input
+                    required
                     value={form.cas}
-                    onChange={(e) => update("cas", e.target.value)}
+                    onChange={(e) =>
+                      setForm((p) => (p ? { ...p, cas: e.target.value } : p))
+                    }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
                     placeholder="76394047"
                   />
                 </Field>
               </div>
             </Section>
+          </div>
 
-            <div className="flex justify-end">
-              <button
-                type="submit"
-                disabled={!canSubmit || saving}
-                className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
-              >
-                {saving ? "Saving…" : "Create Subscriber"}
-              </button>
-            </div>
-          </form>
-        </section>
-      </main>
+          {/* footer */}
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2 bg-white">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              disabled={saving}
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              onClick={save}
+              disabled={!canSave || saving}
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+            >
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
