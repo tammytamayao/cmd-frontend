@@ -3,11 +3,47 @@
 import { AdminSubscriber } from "@/lib/types";
 import { formatDate } from "@/lib/helpers";
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
-      <div className="text-[11px] font-medium text-gray-500">{label}</div>
-      <div className="mt-1 text-sm text-gray-900 break-words">{value}</div>
+    <label className="block">
+      <div className="mb-1 text-xs font-medium text-gray-600">{label}</div>
+      {children}
+    </label>
+  );
+}
+
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
+      <div className="px-6 py-4 border-b border-gray-100">
+        <div className="text-sm font-semibold text-gray-900">{title}</div>
+        {subtitle && (
+          <div className="text-xs text-gray-500 mt-0.5">{subtitle}</div>
+        )}
+      </div>
+      <div className="p-6">{children}</div>
+    </div>
+  );
+}
+
+function ReadOnlyValue({ value }: { value: React.ReactNode }) {
+  return (
+    <div className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900">
+      {value}
     </div>
   );
 }
@@ -38,92 +74,137 @@ export function SubscriberDetailsModal({
       {/* backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
-      <div className="relative w-full max-w-4xl mx-4 rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Subscriber Details
-          </h2>
-        </div>
-
-        <div className="p-6 bg-gray-50 max-h-[75vh] overflow-auto space-y-4">
-          {loading && (
-            <div className="text-xs text-gray-700 bg-gray-100 border border-gray-200 px-3 py-2 rounded-lg">
-              Loading latest details…
-            </div>
-          )}
-
-          {error && (
-            <div className="text-sm text-red-700 bg-red-50 border border-red-100 px-4 py-3 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Row
-              label="Subscriber Name"
-              value={
-                `${subscriber.last_name ?? ""}, ${
-                  subscriber.first_name ?? ""
-                }`.trim() || "-"
-              }
-            />
-            <Row label="Phone Number" value={subscriber.phone_number ?? "-"} />
-            <Row
-              label="Alternative Phone"
-              value={subscriber.alternative_phone ?? "-"}
-            />
-
-            <Row label="Zone / Address" value={subscriber.zone ?? "-"} />
-            <Row
-              label="Date Installed"
-              value={
-                subscriber.date_installed
-                  ? formatDate(subscriber.date_installed)
-                  : "-"
-              }
-            />
-            <Row label="Collector" value={subscriber.collector ?? "-"} />
-
-            <Row label="Package Plan" value={packagePlan} />
-            <Row
-              label="Package Speed"
-              value={`Up to ${subscriber.package_speed ?? 0} mbps`}
-            />
-            <Row
-              label="Amount (brate)"
-              value={`₱ ${(subscriber.brate ?? 0).toLocaleString("en-PH", {
-                minimumFractionDigits: 2,
-              })}`}
-            />
+      <div className="relative w-full max-w-5xl mx-4">
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-xl overflow-hidden">
+          {/* Header (same vibe as Edit) */}
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Edit Subscriber
+            </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Row label="MC Address" value={subscriber.mc_address ?? "-"} />
-            <Row label="STB" value={subscriber.stb ?? "-"} />
-            <Row label="CAS" value={subscriber.cas ?? "-"} />
+          <div className="p-6 max-h-[75vh] overflow-auto space-y-6 bg-gray-50">
+            {loading && (
+              <div className="text-xs text-gray-700 bg-gray-100 border border-gray-200 px-3 py-2 rounded-lg">
+                Loading latest details…
+              </div>
+            )}
+
+            {error && (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-100 px-4 py-3 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {/* PERSONAL INFO (same as Edit section) */}
+            <Section
+              title="Personal Information"
+              subtitle="Basic subscriber details and contact information"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Field label="Last Name">
+                  <ReadOnlyValue value={subscriber.last_name ?? "-"} />
+                </Field>
+
+                <Field label="First Name">
+                  <ReadOnlyValue value={subscriber.first_name ?? "-"} />
+                </Field>
+
+                <Field label="Phone Number">
+                  <ReadOnlyValue value={subscriber.phone_number ?? "-"} />
+                </Field>
+
+                <Field label="Alternative Phone">
+                  <ReadOnlyValue value={subscriber.alternative_phone ?? "-"} />
+                </Field>
+
+                <Field label="Zone / Address">
+                  <ReadOnlyValue value={subscriber.zone ?? "-"} />
+                </Field>
+              </div>
+            </Section>
+
+            {/* PACKAGE PLAN INFO (same as Edit section) */}
+            <Section
+              title="Package Plan Information"
+              subtitle="Installation, plan details, and device identifiers"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Field label="Collector">
+                  <ReadOnlyValue value={subscriber.collector ?? "-"} />
+                </Field>
+
+                <Field label="Date Installed">
+                  <ReadOnlyValue
+                    value={
+                      subscriber.date_installed
+                        ? formatDate(subscriber.date_installed)
+                        : "-"
+                    }
+                  />
+                </Field>
+
+                <Field label="Subscriber Number">
+                  <ReadOnlyValue value={subscriber.serial_number ?? "-"} />
+                </Field>
+
+                {/* Package Plan + TV Enabled (same structure as Edit) */}
+                <div className="md:col-span-1">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Field label="Package Plan">
+                      <ReadOnlyValue value={packagePlan} />
+                    </Field>
+
+                    <Field label="TV Enabled">
+                      <ReadOnlyValue
+                        value={subscriber.tvconnect ? "Yes" : "No"}
+                      />
+                    </Field>
+                  </div>
+                </div>
+
+                <Field label="Amount (brate)">
+                  <ReadOnlyValue
+                    value={`₱ ${(subscriber.brate ?? 0).toLocaleString(
+                      "en-PH",
+                      {
+                        minimumFractionDigits: 2,
+                      }
+                    )}`}
+                  />
+                </Field>
+
+                <Field label="Package Speed (Mbps)">
+                  <ReadOnlyValue
+                    value={`Up to ${subscriber.package_speed ?? 0} mbps`}
+                  />
+                </Field>
+
+                <Field label="MC Address">
+                  <ReadOnlyValue value={subscriber.mc_address ?? "-"} />
+                </Field>
+
+                <Field label="STB">
+                  <ReadOnlyValue value={subscriber.stb ?? "-"} />
+                </Field>
+
+                <Field label="CAS">
+                  <ReadOnlyValue value={subscriber.cas ?? "-"} />
+                </Field>
+              </div>
+            </Section>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Row
-              label="TV Enabled"
-              value={subscriber.tvconnect ? "Yes" : "No"}
-            />
-            <Row
-              label="Requires Password Change"
-              value={subscriber.requires_password_change ? "Yes" : "No"}
-            />
-            <Row label="Subscriber DB ID" value={subscriber.id} />
+          {/* Footer (same as Edit) */}
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-2 bg-white">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Close
+            </button>
           </div>
-        </div>
-
-        <div className="px-6 py-4 border-t border-gray-100 bg-white flex justify-end">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Close
-          </button>
         </div>
       </div>
     </div>
