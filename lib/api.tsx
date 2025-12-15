@@ -488,3 +488,46 @@ export async function fetchAdminBillingsBySubscriber(
 
   return data as { data: AdminBilling[]; meta: PaginationMeta };
 }
+
+export async function createAdminSubscriber(
+  payload: {
+    collector?: string | null;
+    zone?: string | null;
+    date_installed?: string | null;
+    last_name: string;
+    first_name: string;
+    phone_number: string;
+    alternative_phone?: string | null;
+    serial_number?: string | null;
+    tvconnect?: boolean;
+    package?: string | null;
+    plan?: string | null;
+    brate?: number | null;
+    mc_address?: string | null;
+    stb?: string | null;
+    cas?: string | null;
+    package_speed?: number | null;
+    requires_password_change?: boolean;
+  },
+  token?: string | null
+) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/subscribers`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${t}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ subscriber: payload }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      data.error || `admin subscriber create failed: ${res.status}`
+    );
+  }
+  return data as { data: AdminSubscriber };
+}
