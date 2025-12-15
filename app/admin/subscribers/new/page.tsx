@@ -125,9 +125,10 @@ export default function AdminNewSubscriberPage() {
     return (
       form.first_name.trim().length > 0 &&
       form.last_name.trim().length > 0 &&
-      form.phone_number.trim().length > 0
+      form.phone_number.trim().length > 0 &&
+      form.serial_number.trim().length > 0
     );
-  }, [form.first_name, form.last_name, form.phone_number]);
+  }, [form.first_name, form.last_name, form.phone_number, form.serial_number]);
 
   const update = <K extends keyof FormState>(key: K, val: FormState[K]) =>
     setForm((p) => ({ ...p, [key]: val }));
@@ -143,7 +144,9 @@ export default function AdminNewSubscriberPage() {
     }
 
     if (!canSubmit) {
-      setErr("Please fill in First Name, Last Name, and Phone Number.");
+      setErr(
+        "Please fill in First Name, Last Name, Phone & Subscriber Number."
+      );
       return;
     }
 
