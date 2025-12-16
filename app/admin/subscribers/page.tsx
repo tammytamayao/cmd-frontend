@@ -8,11 +8,11 @@ import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 import { useRouter } from "next/navigation";
-import { EditSubscriberModal } from "@/app/components/EditSubscriberModal";
-import { SubscriberDetailsModal } from "@/app/components/SubscriberDetailsModal";
+import { EditSubscriberModal } from "@/app/admin/subscribers/components/EditSubscriberModal";
+import { SubscriberDetailsModal } from "@/app/admin/subscribers/components/SubscriberDetailsModal";
 
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
-import { SubscriberTable } from "@/app/components/admin/SubscribersTable";
+import { SubscriberTable } from "@/app/admin/subscribers/components/SubscribersTable";
 
 type Stats = {
   period_start: string;
