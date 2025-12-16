@@ -11,12 +11,12 @@ import { PaymentDetailsModal } from "@/app/components/PaymentDetailsModal";
 import {
   EditPaymentModal,
   AdminPayment as AdminPaymentForEdit,
-} from "@/app/components/EditPaymentModal";
-import { CreatePaymentModal } from "@/app/components/CreatePaymentModal";
+} from "@/app/admin/payments/components/EditPaymentModal";
+import { CreatePaymentModal } from "@/app/admin/payments/components/CreatePaymentModal";
 
 // ✅ add this
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
-import { PaymentsTable } from "@/app/components/admin/PaymentsTable";
+import { PaymentsTable } from "@/app/admin/payments/components/PaymentsTable";
 
 // ---------------- Types ----------------
 

@@ -9,15 +9,15 @@ import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
-import { BillingDetailsModal } from "@/app/components/BillingDetailsModal";
+import { BillingDetailsModal } from "@/app/admin/billings/components/BillingDetailsModal";
 import {
   EditBillingModal,
   AdminBillingForEdit,
-} from "@/app/components/EditBillingModal";
+} from "@/app/admin/billings/components/EditBillingModal";
 import { useRouter } from "next/navigation";
 
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
-import { BillingsTable } from "@/app/components/admin/BillingsTable";
+import { BillingsTable } from "@/app/admin/billings/components/BillingsTable";
 
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
