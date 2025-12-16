@@ -109,3 +109,24 @@ export function paymentLabel(status: string) {
   if (s === "processing") return "Processing";
   return titleCase(status);
 }
+
+export function formatRangeLabel(startISO: string, endISO: string) {
+  const start = new Date(startISO);
+  const end = new Date(endISO);
+
+  const opts: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+
+  const startText = Number.isNaN(start.getTime())
+    ? startISO
+    : start.toLocaleDateString("en-PH", opts);
+
+  const endText = Number.isNaN(end.getTime())
+    ? endISO
+    : end.toLocaleDateString("en-PH", opts);
+
+  return `${startText} – ${endText}`;
+}
