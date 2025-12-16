@@ -7,6 +7,7 @@ import {
   statusBadgeClasses,
   titleCase,
 } from "@/lib/helpers";
+import { EmptyStateTab } from "./EmptyStateTab";
 
 type PaymentsTabProps = {
   payments: Payment[];
@@ -41,11 +42,18 @@ function renderStatus(status: string) {
     );
   }
 
-  // Fallback: generic pill with title-cased text
   return <span className={baseClasses}>{titleCase(status)}</span>;
 }
 
 export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
+  if (!payments || payments.length === 0) {
+    return (
+      <EmptyStateTab
+        title="No payments yet"
+        description="Once payment is made, it’ll appear here with its details."
+      />
+    );
+  }
   return (
     <>
       {/* Mobile cards */}
