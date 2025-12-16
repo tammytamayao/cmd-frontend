@@ -23,8 +23,6 @@ export type AdminSubscriber = {
   latest_billing_due_date: string | null;
   latest_billing_status: string | null;
 };
-<<<<<<< Updated upstream
-=======
 
 export type AdminBillingSubscriber = {
   id: number;
@@ -130,4 +128,10 @@ export type CurrentUser = {
   zone: string;
   date_installed: string | null;
 };
->>>>>>> Stashed changes
+
+export type HistoryTab = "bills" | "payments";
+
+export type PaymentsTabProps = {
+  payments: Payment[];
+  onViewPayment: (id: string | number) => void;
+};
