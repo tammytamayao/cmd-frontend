@@ -1,5 +1,5 @@
 import { Billing } from "@/lib/types";
-import { Badge } from "../../components/ui/Badge";
+import { Badge } from "@/app/components/ui/Badge";
 import {
   formatCurrency,
   formatDate,
@@ -25,7 +25,6 @@ export function BillingsTab({ bills }: BillingsTabProps) {
 
   return (
     <>
-      {/* Mobile cards */}
       <ul className="sm:hidden divide-y divide-gray-100">
         {bills.map((b) => {
           const normalized = normalizeBillingStatus(b.status);
@@ -59,7 +58,6 @@ export function BillingsTab({ bills }: BillingsTabProps) {
         })}
       </ul>
 
-      {/* Desktop/tablet table */}
       <div className="hidden sm:block w-full overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-gray-600">

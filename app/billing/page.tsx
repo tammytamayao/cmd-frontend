@@ -3,10 +3,10 @@
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Header from "../components/Header";
+import Header from "@/app/components/Header";
 import { getToken } from "@/lib/auth";
-import { YearDropdown } from "../components/ui/YearDropdown";
-import { Segmented } from "../components/ui/Segmented";
+import { YearDropdown } from "@/app/components/ui/YearDropdown";
+import { Segmented } from "@/app/components/ui/Segmented";
 import { BillingsTab } from "@/app/billing/components/BillingsTab";
 import { PaymentsTab } from "@/app/billing/components/PaymentsTab";
 import { PaymentDetailsModal } from "@/app/components/PaymentDetailsModal";
