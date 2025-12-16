@@ -6,6 +6,7 @@ import {
   formatDate,
   normalizeBillingStatus,
 } from "@/lib/helpers";
+import { EmptyStateTab } from "./EmptyStateTab";
 
 type BillingsTabProps = {
   bills: Billing[];
@@ -13,6 +14,15 @@ type BillingsTabProps = {
 
 export function BillingsTab({ bills }: BillingsTabProps) {
   const today = new Date();
+
+  if (!bills || bills.length === 0) {
+    return (
+      <EmptyStateTab
+        title="No billings yet"
+        description="When billing periods are generated, it'll be displayed here."
+      />
+    );
+  }
 
   return (
     <>
