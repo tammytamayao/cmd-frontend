@@ -7,41 +7,63 @@ export default function CompactDropdown<T extends string | number>({
   options,
   onChange,
   placeholder = "Select",
+  emptyLabel = "No options available",
   getLabel = (v) => String(v),
 }: {
   value: T | null;
   options: T[];
   onChange: (v: T) => void;
-  label?: string;
   placeholder?: string;
+  emptyLabel?: string;
   getLabel?: (v: T) => string;
 }) {
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside tap
+  const hasOptions = options.length > 0;
+
+  // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node))
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
+      }
     }
     document.addEventListener("click", handleClick);
     return () => document.removeEventListener("click", handleClick);
   }, []);
 
-  const selectedLabel = value !== null ? getLabel(value) : placeholder;
+  const selectedLabel =
+    value !== null ? getLabel(value) : hasOptions ? placeholder : emptyLabel;
 
   return (
     <div className="relative" ref={wrapperRef}>
       <button
         type="button"
         aria-haspopup="listbox"
-        aria-expanded={open}
-        className="w-full inline-flex items-center justify-between h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open && hasOptions}
+        disabled={!hasOptions}
+        onClick={() => hasOptions && setOpen((o) => !o)}
+        className={`w-full inline-flex items-center justify-between h-10 rounded-lg border px-3 text-sm
+          ${
+            hasOptions
+              ? "border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+          }
+        `}
       >
         <span className={value ? "" : "text-gray-500"}>{selectedLabel}</span>
-        <svg width="14" height="14" viewBox="0 0 20 20" aria-hidden="true">
+
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 20 20"
+          aria-hidden="true"
+          className={hasOptions ? "" : "opacity-40"}
+        >
           <path
             d="M5.5 7.5L10 12l4.5-4.5"
             fill="none"
@@ -52,7 +74,7 @@ export default function CompactDropdown<T extends string | number>({
         </svg>
       </button>
 
-      {open && (
+      {open && hasOptions && (
         <div
           role="listbox"
           tabIndex={-1}
