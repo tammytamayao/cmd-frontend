@@ -11,7 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<LoginMode>("subscriber");
 
-  const [phone, setPhone] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
@@ -29,13 +29,18 @@ export default function LoginPage() {
     setLoading(true);
     try {
       if (mode === "subscriber") {
-        const digits = phone.replace(/\D/g, "");
-        if (digits.length < 8) {
+        const sn = serialNumber.trim();
+
+        // Require at least "1234-1" shape (includes dash)
+        if (!sn || sn.length < 6 || !sn.includes("-")) {
           setLoading(false);
-          return setErr("Please enter a valid phone number.");
+          return setErr(
+            "Please enter a valid serial number (e.g. 105959-210)."
+          );
         }
 
-        const data = await login(phone, password);
+        // NOTE: update your api.login() to send { serial_number: sn, password }
+        const data = await login(sn, password);
         saveToken(data.token);
         router.push("/dashboard");
       } else {
@@ -47,7 +52,7 @@ export default function LoginPage() {
 
         const data = await adminLogin(trimmedEmail, password);
         saveToken(data.token);
-        router.push("/admin/payments"); // admin home page you’ll create
+        router.push("/admin/payments");
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Login failed");
@@ -93,14 +98,14 @@ export default function LoginPage() {
           {isSubscriber ? (
             <div>
               <label className="block text-sm font-medium mb-1">
-                Phone Number
+                Serial Number
               </label>
               <input
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="e.g. 09123456789"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                inputMode="text"
+                autoComplete="off"
+                placeholder="e.g. 105959-210"
+                value={serialNumber}
+                onChange={(e) => setSerialNumber(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500"
               />
             </div>

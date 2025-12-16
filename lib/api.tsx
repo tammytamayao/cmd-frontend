@@ -4,11 +4,11 @@ import { AdminBilling, AdminSubscriber, PaginationMeta } from "./types";
 export const API_BASE =
   process.env.NEXT_PUBLIC_RAILS_API_BASE || "http://localhost:3000";
 
-export async function login(phone: string, password: string) {
+export async function login(serialNumber: string, password: string) {
   const resp = await fetch(`${API_BASE}/api/v1/sessions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phone_number: phone, password }),
+    body: JSON.stringify({ serial_number: serialNumber, password }),
   });
 
   const data = await resp.json().catch(() => ({}));
