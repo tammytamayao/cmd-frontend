@@ -94,7 +94,7 @@ export default function PaymentPage() {
   };
 
   const gcashBillerName = "CMD Cable Vision Inc";
-  const reference = "-";
+  const reference = me?.serial_number ?? "-";
 
   // Receipt upload state
   const [file, setFile] = useState<File | null>(null);
