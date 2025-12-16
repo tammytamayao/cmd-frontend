@@ -48,14 +48,6 @@ export function normalizeBillingStatus(
   return "paid";
 }
 
-// export function paymentTone(status: string): "green" | "red" | "gray" {
-//   const lower = status.toLowerCase();
-//   if (lower === "confirmed") return "green";
-//   if (lower === "processing") return "gray";
-//   if (lower === "failed" || lower === "rejected") return "red"; // 🔹 include rejected
-//   return "gray";
-// }
-
 export function titleCase(s: string) {
   if (!s) return s;
   return s.slice(0, 1).toUpperCase() + s.slice(1).toLowerCase();
