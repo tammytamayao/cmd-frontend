@@ -1,18 +1,11 @@
-// app/billing/PaymentsTab.tsx
-
-import { Payment } from "@/lib/types";
+import { PaymentsTabProps } from "@/lib/types";
 import {
   formatCurrency,
   formatDate,
   statusBadgeClasses,
   titleCase,
 } from "@/lib/helpers";
-import { EmptyStateTab } from "./EmptyStateTab";
-
-type PaymentsTabProps = {
-  payments: Payment[];
-  onViewPayment: (id: string | number) => void;
-};
+import { EmptyStateTab } from "@/app/components/EmptyStateTab";
 
 function renderStatus(status: string) {
   const normalized = status.toLowerCase();
@@ -56,7 +49,6 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
   }
   return (
     <>
-      {/* Mobile cards */}
       <ul className="sm:hidden divide-y divide-gray-100">
         {payments.map((p) => (
           <li key={p.id} className="p-4">
@@ -75,7 +67,6 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
               {formatCurrency(p.amount)}
             </p>
 
-            {/* View details button (mobile) */}
             <button
               onClick={() => onViewPayment(p.id)}
               className="mt-3 inline-flex items-center rounded-lg border border-indigo-500 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-white hover:bg-indigo-50 hover:border-indigo-600 active:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
@@ -86,7 +77,6 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
         ))}
       </ul>
 
-      {/* Desktop/tablet table */}
       <div className="hidden sm:block w-full overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-gray-600">

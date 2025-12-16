@@ -1,12 +1,11 @@
-// app/components/BillingsTab.tsx
 import { Billing } from "@/lib/types";
-import { Badge } from "./ui/Badge";
+import { Badge } from "../../components/ui/Badge";
 import {
   formatCurrency,
   formatDate,
   normalizeBillingStatus,
 } from "@/lib/helpers";
-import { EmptyStateTab } from "./EmptyStateTab";
+import { EmptyStateTab } from "@/app/components/EmptyStateTab";
 
 type BillingsTabProps = {
   bills: Billing[];
@@ -19,7 +18,7 @@ export function BillingsTab({ bills }: BillingsTabProps) {
     return (
       <EmptyStateTab
         title="No billings yet"
-        description="When billing periods are generated, it'll be displayed here."
+        description="When billing periods are generated, itll be displayed here."
       />
     );
   }
