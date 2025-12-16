@@ -48,13 +48,13 @@ export function normalizeBillingStatus(
   return "paid";
 }
 
-export function paymentTone(status: string): "green" | "red" | "gray" {
-  const lower = status.toLowerCase();
-  if (lower === "confirmed") return "green";
-  if (lower === "processing") return "gray";
-  if (lower === "failed" || lower === "rejected") return "red"; // 🔹 include rejected
-  return "gray";
-}
+// export function paymentTone(status: string): "green" | "red" | "gray" {
+//   const lower = status.toLowerCase();
+//   if (lower === "confirmed") return "green";
+//   if (lower === "processing") return "gray";
+//   if (lower === "failed" || lower === "rejected") return "red"; // 🔹 include rejected
+//   return "gray";
+// }
 
 export function titleCase(s: string) {
   if (!s) return s;
@@ -100,7 +100,7 @@ export function billingTone(status: string): "success" | "danger" | "neutral" {
   return "neutral"; // unpaid
 }
 
-export function paymentTone2(
+export function paymentTone(
   status: string
 ): "success" | "danger" | "info" | "neutral" {
   const s = status.toLowerCase();

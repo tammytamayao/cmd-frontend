@@ -2,7 +2,7 @@ import { PaymentsTabProps } from "@/lib/types";
 import {
   formatCurrency,
   formatDate,
-  paymentTone2,
+  paymentTone,
   paymentLabel,
 } from "@/lib/helpers";
 import { EmptyStateTab } from "@/app/components/EmptyStateTab";
@@ -35,7 +35,7 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
 
               <StatusPill
                 label={paymentLabel(p.status)}
-                tone={paymentTone2(p.status)}
+                tone={paymentTone(p.status)}
               />
             </div>
 
@@ -57,12 +57,11 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-gray-600">
             <tr className="[&>th]:text-left [&>th]:font-semibold [&>th]:py-3 [&>th]:px-4">
-              <th className="w-[15%]">Payment Date</th>
-              <th className="w-[15%]">Due Date</th>
-              <th className="w-[15%]">Payment Method</th>
+              <th className="w-[25%]">Payment Date</th>
+              <th className="w-[20%]">Payment Method</th>
               <th className="w-[15%]">Status</th>
-              <th className="w-[15%]">Reference No.</th>
-              <th className="w-[15%]"></th>
+              <th className="w-[20%]">Reference No.</th>
+              <th className="w-[20%]"></th>
             </tr>
           </thead>
 
@@ -70,12 +69,11 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
             {payments.map((p) => (
               <tr key={p.id} className="[&>td]:py-4 [&>td]:px-4">
                 <td className="text-gray-900">{formatDate(p.payment_date)}</td>
-                <td className="text-gray-900">{formatDate(p.payment_date)}</td>
                 <td className="text-gray-700">{p.payment_method}</td>
                 <td>
                   <StatusPill
                     label={paymentLabel(p.status)}
-                    tone={paymentTone2(p.status)}
+                    tone={paymentTone(p.status)}
                   />
                 </td>
                 <td className="text-gray-700">{p.reference_number || "-"}</td>
