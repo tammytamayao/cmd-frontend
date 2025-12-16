@@ -174,3 +174,45 @@ export type PaymentConfirmProps = {
   submitting: boolean;
   onSubmit: () => void;
 };
+
+// ---------------- Types ----------------
+
+export type AdminPaymentSubscriber = {
+  id: number | null;
+  serial_number: string | null;
+  first_name: string | null;
+  last_name: string | null;
+};
+
+export type AdminPaymentReceipt = {
+  filename: string | null;
+  size: number | null;
+  mime_type: string | null;
+  uploaded_at: string | null;
+};
+
+export type AdminPayment = {
+  id: number;
+  payment_date: string | null;
+  amount: number;
+  payment_method: string;
+  status: string;
+  attachment: string | null;
+  reference_number: string | null;
+  invoice_number?: string | null;
+  billing_id: number;
+  billing_period_start: string | null;
+  billing_period_end: string | null;
+  billing_status: string | null;
+  subscriber: AdminPaymentSubscriber;
+  receipt: AdminPaymentReceipt;
+  receipt_url?: string | null;
+};
+
+export type Stats = {
+  period_start: string;
+  period_end: string;
+  total_revenue: number;
+  total_overdue: number;
+  new_subscribers: number;
+};

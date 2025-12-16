@@ -13,44 +13,9 @@ import {
   AdminPayment as AdminPaymentForEdit,
 } from "@/app/admin/payments/components/EditPaymentModal";
 import { CreatePaymentModal } from "@/app/admin/payments/components/CreatePaymentModal";
-
-// ✅ add this
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
 import { PaymentsTable } from "@/app/admin/payments/components/PaymentsTable";
-
-// ---------------- Types ----------------
-
-type AdminPaymentSubscriber = {
-  id: number | null;
-  serial_number: string | null;
-  first_name: string | null;
-  last_name: string | null;
-};
-
-type AdminPaymentReceipt = {
-  filename: string | null;
-  size: number | null;
-  mime_type: string | null;
-  uploaded_at: string | null;
-};
-
-type AdminPayment = {
-  id: number;
-  payment_date: string | null;
-  amount: number;
-  payment_method: string;
-  status: string;
-  attachment: string | null;
-  reference_number: string | null;
-  invoice_number?: string | null;
-  billing_id: number;
-  billing_period_start: string | null;
-  billing_period_end: string | null;
-  billing_status: string | null;
-  subscriber: AdminPaymentSubscriber;
-  receipt: AdminPaymentReceipt;
-  receipt_url?: string | null;
-};
+import { AdminPayment } from "@/lib/types";
 
 // ---------------- Main Page ----------------
 
@@ -62,19 +27,14 @@ export default function AdminPaymentsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
-  // view modal state
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<AdminPayment | null>(
     null
   );
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
-
-  // edit modal state
   const [editOpen, setEditOpen] = useState(false);
   const [editPayment, setEditPayment] = useState<AdminPayment | null>(null);
-
-  // create modal state
   const [createOpen, setCreateOpen] = useState(false);
 
   useEffect(() => {
@@ -158,7 +118,6 @@ export default function AdminPaymentsPage() {
     setEditPayment(null);
   };
 
-  // after successful update, update local list
   const handlePaymentUpdated = (updated: AdminPayment) => {
     setPayments((prev) =>
       prev

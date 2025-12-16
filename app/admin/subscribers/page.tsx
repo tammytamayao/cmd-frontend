@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { fetchAllSubscribers, fetchAdminSubscriber } from "@/lib/api";
-import { AdminSubscriber } from "@/lib/types";
+import { AdminSubscriber, Stats } from "@/lib/types";
 import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
@@ -13,14 +13,6 @@ import { SubscriberDetailsModal } from "@/app/admin/subscribers/components/Subsc
 
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
 import { SubscriberTable } from "@/app/admin/subscribers/components/SubscribersTable";
-
-type Stats = {
-  period_start: string;
-  period_end: string;
-  total_revenue: number;
-  total_overdue: number;
-  new_subscribers: number;
-};
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -34,7 +26,6 @@ export default function AdminDashboardPage() {
 
   const [editing, setEditing] = useState<AdminSubscriber | null>(null);
 
-  // details modal state
   const [viewing, setViewing] = useState<AdminSubscriber | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewErr, setViewErr] = useState<string | null>(null);
@@ -87,8 +78,6 @@ export default function AdminDashboardPage() {
   async function openDetails(s: AdminSubscriber) {
     setViewErr(null);
     setViewLoading(true);
-
-    // show something immediately (fast), then replace with fresh data
     setViewing(s);
 
     const token = getToken();
@@ -139,7 +128,6 @@ export default function AdminDashboardPage() {
         />
 
         <section className="flex-1 px-8 py-6 space-y-6">
-          {/* ✅ replace the old card div with AdminTableCard */}
           <AdminTableCard
             hasRows={hasRows}
             emptyTitle={
