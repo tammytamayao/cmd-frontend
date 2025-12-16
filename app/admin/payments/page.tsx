@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
-import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
+import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
-import { formatDate, statusBadgeClasses, titleCase } from "@/lib/helpers";
 
 import { fetchAllPaymentss, fetchAdminPayment } from "@/lib/api";
 import { PaymentDetailsModal } from "@/app/components/PaymentDetailsModal";
@@ -14,6 +13,10 @@ import {
   AdminPayment as AdminPaymentForEdit,
 } from "@/app/components/EditPaymentModal";
 import { CreatePaymentModal } from "@/app/components/CreatePaymentModal";
+
+// ✅ add this
+import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
+import { PaymentsTable } from "@/app/components/admin/PaymentsTable";
 
 // ---------------- Types ----------------
 
@@ -101,12 +104,14 @@ export default function AdminPaymentsPage() {
     return (
       String(p.id).includes(q) ||
       (p.reference_number || "").toLowerCase().includes(q) ||
-      (p.invoice_number || "").toLowerCase().includes(q) || // include invoice in search
+      (p.invoice_number || "").toLowerCase().includes(q) ||
       (p.payment_method || "").toLowerCase().includes(q) ||
       (p.subscriber?.serial_number || "").toLowerCase().includes(q) ||
       (p.subscriber?.last_name || "").toLowerCase().includes(q)
     );
   });
+
+  const hasRows = !!filteredPayments && filteredPayments.length > 0;
 
   const handleViewDetails = async (id: number) => {
     if (!token) return;
@@ -192,118 +197,33 @@ export default function AdminPaymentsPage() {
           onAction={() => setCreateOpen(true)}
         />
 
-        {/* Table */}
         <section className="flex-1 px-8 py-6">
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    SUBSCRIBER ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    SUBSCRIBER NAME
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    PAYMENT DATE
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    BILLING PERIOD
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    MODE OF PAYMENT
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    PAYMENT STATUS
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
-                    ACTIONS
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPayments && filteredPayments.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-6 text-center text-sm text-gray-500"
-                    >
-                      No payments match your search.
-                    </td>
-                  </tr>
-                )}
-
-                {filteredPayments?.map((p, idx) => (
-                  <tr
-                    key={p.id}
-                    onClick={() => handleViewDetails(p.id)}
-                    className={`${
-                      idx % 2 === 0 ? "bg-white" : "bg-gray-50/60"
-                    } cursor-pointer hover:bg-indigo-50/50 transition-colors`}
-                  >
-                    <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
-                      {p.subscriber?.serial_number || "—"}
-                    </td>
-                    <td className="px-4 py-3 align-middle">
-                      <div className="flex flex-col">
-                        <span className="font-medium text-gray-900">
-                          {p.subscriber?.last_name}, {p.subscriber?.first_name}
-                        </span>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-3 align-middle text-sm text-gray-900">
-                      {formatDate(p.payment_date)}
-                    </td>
-
-                    <td className="px-4 py-3 align-middle text-sm text-gray-700">
-                      {p.billing_period_start && p.billing_period_end ? (
-                        <>
-                          {formatDate(p.billing_period_start)} –{" "}
-                          {formatDate(p.billing_period_end)}
-                        </>
-                      ) : (
-                        <span className="text-gray-400">N/A</span>
-                      )}
-                    </td>
-
-                    <td className="px-4 py-3 align-middle text-sm text-gray-700">
-                      {p.payment_method || "—"}
-                    </td>
-
-                    <td className="px-4 py-3 align-middle">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusBadgeClasses(
-                          p.status
-                        )}`}
-                      >
-                        {titleCase(p.status)}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-3 align-middle text-right space-x-2">
-                      {/* Edit button should not trigger row click */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenEdit(p.id);
-                        }}
-                        className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <Pagination meta={meta} onPageChange={setPage} />
-          </div>
+          <AdminTableCard
+            hasRows={hasRows}
+            emptyTitle={
+              search.trim()
+                ? "No payments match your search"
+                : "No payments yet"
+            }
+            emptyDescription={
+              search.trim()
+                ? "Try searching by invoice number, reference number, subscriber ID, or last name."
+                : "Create your first payment record to get started."
+            }
+            emptyActionLabel="Add Payment"
+            onEmptyAction={() => setCreateOpen(true)}
+          >
+            <PaymentsTable
+              payments={filteredPayments ?? []}
+              meta={hasRows ? meta : null}
+              onPageChange={setPage}
+              onRowClick={(p) => handleViewDetails(p.id)}
+              onEdit={(p) => handleOpenEdit(p.id)}
+            />
+          </AdminTableCard>
         </section>
       </main>
 
-      {/* View details modal */}
       <PaymentDetailsModal
         open={detailsOpen}
         onClose={handleCloseModal}
@@ -312,7 +232,6 @@ export default function AdminPaymentsPage() {
         error={detailsError}
       />
 
-      {/* Edit payment modal */}
       <EditPaymentModal
         open={editOpen}
         onClose={handleCloseEdit}
@@ -320,12 +239,10 @@ export default function AdminPaymentsPage() {
         onUpdated={handlePaymentUpdated}
       />
 
-      {/* Edit payment modal */}
       <CreatePaymentModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(newPayment: AdminPayment) => {
-          // put new payment on top
           setPayments((prev) => (prev ? [newPayment, ...prev] : [newPayment]));
         }}
       />

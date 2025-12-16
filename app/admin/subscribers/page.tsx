@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { fetchAllSubscribers, fetchAdminSubscriber } from "@/lib/api";
 import { AdminSubscriber } from "@/lib/types";
-import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
+import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
-import { formatDate } from "@/lib/helpers";
 import { useRouter } from "next/navigation";
 import { EditSubscriberModal } from "@/app/components/EditSubscriberModal";
 import { SubscriberDetailsModal } from "@/app/components/SubscriberDetailsModal";
+
+import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
+import { SubscriberTable } from "@/app/components/admin/SubscribersTable";
 
 type Stats = {
   period_start: string;
@@ -80,6 +82,8 @@ export default function AdminDashboardPage() {
     );
   });
 
+  const hasRows = !!filteredSubs && filteredSubs.length > 0;
+
   async function openDetails(s: AdminSubscriber) {
     setViewErr(null);
     setViewLoading(true);
@@ -135,98 +139,30 @@ export default function AdminDashboardPage() {
         />
 
         <section className="flex-1 px-8 py-6 space-y-6">
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    SUBSCRIBER ID
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    SUBSCRIBER NAME
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    ADDRESS
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    INSTALLATION DATE
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    PACKAGE PLAN
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                    PACKAGE SPEED
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500"></th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredSubs && filteredSubs.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="px-4 py-6 text-center text-sm text-gray-500"
-                    >
-                      No subscribers match your search.
-                    </td>
-                  </tr>
-                )}
-
-                {filteredSubs?.map((s, idx) => (
-                  <tr
-                    key={s.id}
-                    onClick={() => openDetails(s)}
-                    className={[
-                      idx % 2 === 0 ? "bg-white" : "bg-gray-50/60",
-                      "cursor-pointer hover:bg-indigo-50/40",
-                    ].join(" ")}
-                  >
-                    <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
-                      {s.serial_number ||
-                        `SUB-${String(s.id).padStart(5, "0")}`}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {s.last_name}, {s.first_name}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {s.zone ? `${s.zone}` : "Unknown"}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {s.date_installed ? formatDate(s.date_installed) : "-"}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {s.package ? `${s.package}` : "-"}
-                      {s.plan ? `${s.plan}` : "-"}
-                    </td>
-
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      Up to {s.package_speed ? `${s.package_speed}` : "0"} Mbps
-                    </td>
-
-                    <td className="px-4 py-3 text-sm">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation(); // ✅ prevent row click
-                          setEditing(s);
-                        }}
-                        className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            <Pagination meta={meta} onPageChange={setPage} />
-          </div>
+          {/* ✅ replace the old card div with AdminTableCard */}
+          <AdminTableCard
+            hasRows={hasRows}
+            emptyTitle={
+              search.trim()
+                ? "No subscribers match your search"
+                : "No subscribers yet"
+            }
+            emptyDescription={
+              search.trim()
+                ? "Try searching by name, serial number, or ID."
+                : "Add your first subscriber to get started."
+            }
+            emptyActionLabel="Add Subscriber"
+            onEmptyAction={() => router.push("/admin/subscribers/new")}
+          >
+            <SubscriberTable
+              subscribers={filteredSubs ?? []}
+              meta={hasRows ? meta : null}
+              onPageChange={setPage}
+              onRowClick={openDetails}
+              onEdit={setEditing}
+            />
+          </AdminTableCard>
         </section>
 
         {/* DETAILS MODAL */}
@@ -252,7 +188,6 @@ export default function AdminDashboardPage() {
               prev ? prev.map((x) => (x.id === updated.id ? updated : x)) : prev
             );
 
-            // keep details modal in sync if it’s open for same subscriber
             setViewing((prev) => (prev?.id === updated.id ? updated : prev));
           }}
         />
