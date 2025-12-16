@@ -135,3 +135,7 @@ export type PaymentsTabProps = {
   payments: Payment[];
   onViewPayment: (id: string | number) => void;
 };
+
+export type BillingsTabProps = {
+  bills: Billing[];
+};

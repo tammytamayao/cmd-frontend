@@ -2,41 +2,11 @@ import { PaymentsTabProps } from "@/lib/types";
 import {
   formatCurrency,
   formatDate,
-  statusBadgeClasses,
-  titleCase,
+  paymentTone2,
+  paymentLabel,
 } from "@/lib/helpers";
 import { EmptyStateTab } from "@/app/components/EmptyStateTab";
-
-function renderStatus(status: string) {
-  const normalized = status.toLowerCase();
-  const baseClasses =
-    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 " +
-    statusBadgeClasses(status);
-
-  if (normalized === "processing") {
-    return (
-      <span className={baseClasses}>
-        <span>Processing</span>
-      </span>
-    );
-  }
-  if (normalized === "completed" || normalized === "paid") {
-    return (
-      <span className={baseClasses}>
-        <span>Completed</span>
-      </span>
-    );
-  }
-  if (normalized === "rejected" || normalized === "failed") {
-    return (
-      <span className={baseClasses}>
-        <span>Rejected</span>
-      </span>
-    );
-  }
-
-  return <span className={baseClasses}>{titleCase(status)}</span>;
-}
+import { StatusPill } from "@/app/components/ui/StatusPill";
 
 export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
   if (!payments || payments.length === 0) {
@@ -47,6 +17,7 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
       />
     );
   }
+
   return (
     <>
       <ul className="sm:hidden divide-y divide-gray-100">
@@ -61,8 +32,13 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
                   {p.payment_method || "-"} • {p.reference_number || "-"}
                 </p>
               </div>
-              {renderStatus(p.status)}
+
+              <StatusPill
+                label={paymentLabel(p.status)}
+                tone={paymentTone2(p.status)}
+              />
             </div>
+
             <p className="mt-3 text-lg font-semibold text-gray-900">
               {formatCurrency(p.amount)}
             </p>
@@ -88,15 +64,19 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
               <th className="w-[20%]"></th>
             </tr>
           </thead>
+
           <tbody className="divide-y divide-gray-100">
             {payments.map((p) => (
               <tr key={p.id} className="[&>td]:py-4 [&>td]:px-4">
                 <td className="text-gray-900">{formatDate(p.payment_date)}</td>
                 <td className="text-gray-700">{p.payment_method}</td>
-                <td>{renderStatus(p.status)}</td>
-                <td className="text-gray-700">
-                  {p.reference_number ? p.reference_number : "-"}
+                <td>
+                  <StatusPill
+                    label={paymentLabel(p.status)}
+                    tone={paymentTone2(p.status)}
+                  />
                 </td>
+                <td className="text-gray-700">{p.reference_number || "-"}</td>
                 <td>
                   <button
                     onClick={() => onViewPayment(p.id)}
