@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { saveToken } from "@/lib/auth";
 import { login, adminLogin } from "@/lib/api";
-import { ModeToggle } from "@/app/components/login/ModeToggle";
-import { IdentityField } from "@/app/components/login/IdentityField";
-import { PasswordField } from "@/app/components/login/PasswordField";
+import { ModeToggle } from "@/app/login/components/ModeToggle";
+import { IdentityField } from "@/app/login/components/IdentityField";
+import { PasswordField } from "@/app/login/components/PasswordField";
 import { normalizeError, validate } from "@/lib/helpers";
 import { LoginMode } from "@/lib/types";
 
