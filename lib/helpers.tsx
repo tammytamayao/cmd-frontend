@@ -1,4 +1,9 @@
-import { LoginMode, ValidationResult } from "./types";
+import {
+  AdminSubscriber,
+  EditSubscriberForm,
+  LoginMode,
+  ValidationResult,
+} from "./types";
 
 export function formatCurrency(n: number) {
   return n.toLocaleString("en-PH", { style: "currency", currency: "PHP" });
@@ -129,4 +134,35 @@ export function formatRangeLabel(startISO: string, endISO: string) {
     : end.toLocaleDateString("en-PH", opts);
 
   return `${startText} – ${endText}`;
+}
+
+export function toEditSubscriberForm(s: AdminSubscriber): EditSubscriberForm {
+  return {
+    last_name: s.last_name ?? "",
+    first_name: s.first_name ?? "",
+    phone_number: s.phone_number ?? "",
+    alternative_phone: (s.alternative_phone ?? "") as string,
+    zone: s.zone ?? "",
+
+    collector: (s.collector ?? "") as string,
+    date_installed: s.date_installed ?? "",
+    serial_number: s.serial_number ?? "",
+    tvconnect: !!s.tvconnect,
+
+    package: (s.package ?? "") as string,
+    plan: s.plan ?? "",
+    brate: s.brate != null ? String(s.brate) : "",
+    package_speed: s.package_speed != null ? String(s.package_speed) : "",
+
+    mc_address: (s.mc_address ?? "") as string,
+    stb: (s.stb ?? "") as string,
+    cas: (s.cas ?? "") as string,
+
+    requires_password_change: !!s.requires_password_change,
+  };
+}
+
+export function computePackagePlanLabel(s: AdminSubscriber | null): string {
+  if (!s) return "-";
+  return `${s.package ?? ""}${s.plan ?? ""}`.trim() || "-";
 }
