@@ -8,10 +8,7 @@ import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
 import { fetchAllPaymentss, fetchAdminPayment } from "@/lib/api";
 import { PaymentDetailsModal } from "@/app/admin/payments/components/PaymentDetailsModal";
-import {
-  EditPaymentModal,
-  AdminPayment as AdminPaymentForEdit,
-} from "@/app/admin/payments/components/EditPaymentModal";
+import { EditPaymentModal } from "@/app/admin/payments/components/EditPaymentModal";
 import { CreatePaymentModal } from "@/app/admin/payments/components/CreatePaymentModal";
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
 import { PaymentsTable } from "@/app/admin/payments/components/PaymentsTable";
@@ -194,7 +191,7 @@ export default function AdminPaymentsPage() {
       <EditPaymentModal
         open={editOpen}
         onClose={handleCloseEdit}
-        payment={editPayment as AdminPaymentForEdit | null}
+        payment={editPayment as AdminPayment | null}
         onUpdated={handlePaymentUpdated}
       />
 
