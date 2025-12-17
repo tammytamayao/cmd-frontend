@@ -244,3 +244,63 @@ export type EditBillingModalProps = {
 };
 
 export type BillingStatusOption = "unpaid" | "paid";
+
+export type SubscriberOption = {
+  id: number;
+  label: string;
+  serial_number?: string | null;
+};
+
+export type BillingOption = {
+  id: number;
+  label: string;
+  amount: number;
+};
+
+export type CreatePaymentModalProps = {
+  open: boolean;
+  onClose: () => void;
+  onCreated: (payment: AdminPayment) => void;
+};
+
+export type EditPaymentModalProps = {
+  open: boolean;
+  onClose: () => void;
+  payment: AdminPayment | null;
+  onUpdated: (payment: AdminPayment) => void;
+};
+
+export type PaymentLike = {
+  payment_date: string | null;
+  amount: number;
+  payment_method: string;
+  status: string;
+  reference_number?: string | null;
+  invoice_number?: string | null;
+  billing_period_start?: string | null;
+  billing_period_end?: string | null;
+  receipt?: {
+    filename?: string | null;
+    size?: number | null;
+    mime_type?: string | null;
+    uploaded_at?: string | null;
+  } | null;
+  receipt_url?: string | null;
+};
+
+export type PaymentDetailsModalProps = {
+  open: boolean;
+  onClose: () => void;
+  payment: PaymentLike | null;
+  loading: boolean;
+  error: string | null;
+};
+
+export type PaymentTableProps = {
+  payments: AdminPayment[];
+  meta?: PaginationMeta | null;
+  onPageChange: (page: number) => void;
+
+  onRowClick: (payment: AdminPayment) => void;
+  onEdit: (payment: AdminPayment) => void;
+};
