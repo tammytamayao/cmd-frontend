@@ -1,116 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AdminSubscriber } from "@/lib/types";
+import type { AdminSubscriber, EditSubscriberForm } from "@/lib/types";
 import { getToken } from "@/lib/auth";
 import { updateAdminSubscriber } from "@/lib/api";
-import { SelectDropdown } from "@/app/components/ui/SelectDropdown";
 import { AdminModal } from "@/app/components/admin/AdminModal";
-
-type EditForm = {
-  last_name: string;
-  first_name: string;
-  phone_number: string;
-  alternative_phone: string;
-  zone: string;
-
-  collector: string;
-  date_installed: string; // YYYY-MM-DD
-  serial_number: string;
-  tvconnect: boolean;
-
-  package: string;
-  plan: string;
-  brate: string;
-  package_speed: string;
-
-  mc_address: string;
-  stb: string;
-  cas: string;
-
-  requires_password_change: boolean;
-};
-
-function toEditForm(s: AdminSubscriber): EditForm {
-  return {
-    last_name: s.last_name ?? "",
-    first_name: s.first_name ?? "",
-    phone_number: s.phone_number ?? "",
-    alternative_phone: (s.alternative_phone ?? "") as string,
-    zone: s.zone ?? "",
-
-    collector: (s.collector ?? "") as string,
-    date_installed: s.date_installed ?? "",
-    serial_number: s.serial_number ?? "",
-    tvconnect: !!s.tvconnect,
-
-    package: (s.package ?? "") as string,
-    plan: s.plan ?? "",
-    brate: s.brate != null ? String(s.brate) : "",
-    package_speed: s.package_speed != null ? String(s.package_speed) : "",
-
-    mc_address: (s.mc_address ?? "") as string,
-    stb: (s.stb ?? "") as string,
-    cas: (s.cas ?? "") as string,
-
-    requires_password_change: !!s.requires_password_change,
-  };
-}
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <div className="mb-1 text-xs font-medium text-gray-600">{label}</div>
-      {children}
-    </label>
-  );
-}
-
-function Section({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-      <div className="px-6 py-4 border-b border-gray-100">
-        <div className="text-sm font-semibold text-gray-900">{title}</div>
-        {subtitle && (
-          <div className="text-xs text-gray-500 mt-0.5">{subtitle}</div>
-        )}
-      </div>
-      <div className="p-6">{children}</div>
-    </div>
-  );
-}
-
-const PACKAGE_PLAN_OPTIONS = [
-  "MA",
-  "MB",
-  "MC",
-  "FM",
-  "RB",
-  "FC",
-  "FT",
-  "FH",
-  "FO",
-  "FG",
-  "FP",
-  "M",
-  "R",
-] as const;
-
-type PackagePlanOption = (typeof PACKAGE_PLAN_OPTIONS)[number];
+import {
+  SubscriberPersonalInfoEdit,
+  SubscriberPlanInfoEdit,
+} from "@/app/admin/subscribers/components/SubscriberSections";
+import { toEditSubscriberForm } from "@/lib/helpers";
 
 export function EditSubscriberModal({
   open,
@@ -123,7 +22,7 @@ export function EditSubscriberModal({
   onClose: () => void;
   onUpdated: (updated: AdminSubscriber) => void;
 }) {
-  const [form, setForm] = useState<EditForm | null>(null);
+  const [form, setForm] = useState<EditSubscriberForm | null>(null);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -134,14 +33,13 @@ export function EditSubscriberModal({
       setSaving(false);
       return;
     }
-    setForm(toEditForm(subscriber));
+    setForm(toEditSubscriberForm(subscriber));
     setErr(null);
     setSaving(false);
   }, [open, subscriber, subscriber?.id]);
 
   const canSave = useMemo(() => {
     if (!form) return false;
-
     return (
       form.last_name.trim() !== "" &&
       form.first_name.trim() !== "" &&
@@ -249,240 +147,8 @@ export function EditSubscriberModal({
         </div>
       ) : (
         <>
-          <Section
-            title="Personal Information"
-            subtitle="Basic subscriber details and contact information"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Field label="Last Name *">
-                <input
-                  required
-                  value={form.last_name}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, last_name: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="TAMAYAO"
-                />
-              </Field>
-
-              <Field label="First Name *">
-                <input
-                  required
-                  value={form.first_name}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, first_name: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="PRINCESS CONNIE"
-                />
-              </Field>
-
-              <Field label="Phone Number *">
-                <input
-                  required
-                  value={form.phone_number}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, phone_number: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="0995xxxxxxx"
-                />
-              </Field>
-
-              <Field label="Alternative Phone">
-                <input
-                  value={form.alternative_phone}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, alternative_phone: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-              </Field>
-
-              <Field label="Zone / Address">
-                <input
-                  required
-                  value={form.zone}
-                  onChange={(e) =>
-                    setForm((p) => (p ? { ...p, zone: e.target.value } : p))
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="e.g. DANGAN RM"
-                />
-              </Field>
-            </div>
-          </Section>
-
-          <Section
-            title="Package Plan Information"
-            subtitle="Installation, plan details, and device identifiers"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Field label="Collector">
-                <input
-                  required
-                  value={form.collector}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, collector: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="e.g. MERVIN PEREZ"
-                />
-              </Field>
-
-              <Field label="Installation Date">
-                <input
-                  required
-                  type="date"
-                  value={form.date_installed}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, date_installed: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                />
-              </Field>
-
-              <Field label="Subscriber Number">
-                <input
-                  required
-                  value={form.serial_number}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, serial_number: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="105959-210"
-                />
-              </Field>
-
-              <div className="md:col-span-1">
-                <div className="grid grid-cols-2 gap-4">
-                  <Field label="Package Plan">
-                    <SelectDropdown<PackagePlanOption>
-                      value={
-                        form.package
-                          ? form.plan
-                            ? (`${form.package}${form.plan}` as PackagePlanOption)
-                            : (form.package as PackagePlanOption)
-                          : null
-                      }
-                      options={PACKAGE_PLAN_OPTIONS}
-                      placeholder="Select…"
-                      onChange={(opt: string) => {
-                        const v = String(opt).trim().toUpperCase();
-                        if (v.length === 1) {
-                          setForm((p) =>
-                            p ? { ...p, package: v, plan: "" } : p
-                          );
-                        } else {
-                          setForm((p) =>
-                            p ? { ...p, package: v[0], plan: v.slice(1) } : p
-                          );
-                        }
-                      }}
-                      getLabel={(v: string) => String(v)}
-                    />
-                  </Field>
-
-                  <Field label="TV Enabled">
-                    <div className="flex items-center gap-2 h-[38px] rounded-lg px-3 bg-white">
-                      <input
-                        type="checkbox"
-                        checked={form.tvconnect}
-                        onChange={(e) =>
-                          setForm((p) =>
-                            p ? { ...p, tvconnect: e.target.checked } : p
-                          )
-                        }
-                        className="h-4 w-4"
-                      />
-                      <span className="text-sm text-gray-700">Enabled</span>
-                    </div>
-                  </Field>
-                </div>
-              </div>
-
-              <Field label="Amount (brate)">
-                <input
-                  required
-                  inputMode="numeric"
-                  value={form.brate}
-                  onChange={(e) =>
-                    setForm((p) => (p ? { ...p, brate: e.target.value } : p))
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="2299"
-                />
-              </Field>
-
-              <Field label="Package Speed (Mbps)">
-                <input
-                  required
-                  inputMode="numeric"
-                  value={form.package_speed}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, package_speed: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="320"
-                />
-              </Field>
-
-              <Field label="MC Address">
-                <input
-                  required
-                  value={form.mc_address}
-                  onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, mc_address: e.target.value } : p
-                    )
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="04AB084D5174"
-                />
-              </Field>
-
-              <Field label="STB">
-                <input
-                  required
-                  value={form.stb}
-                  onChange={(e) =>
-                    setForm((p) => (p ? { ...p, stb: e.target.value } : p))
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="S200959895"
-                />
-              </Field>
-
-              <Field label="CAS">
-                <input
-                  required
-                  value={form.cas}
-                  onChange={(e) =>
-                    setForm((p) => (p ? { ...p, cas: e.target.value } : p))
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-                  placeholder="76394047"
-                />
-              </Field>
-            </div>
-          </Section>
+          <SubscriberPersonalInfoEdit form={form} setForm={setForm} />
+          <SubscriberPlanInfoEdit form={form} setForm={setForm} />
         </>
       )}
     </AdminModal>
