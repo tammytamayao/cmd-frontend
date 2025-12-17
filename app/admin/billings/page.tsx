@@ -61,7 +61,6 @@ export default function AdminBillingsPage() {
     setEditBilling(null);
   };
 
-  // after successful update, update local list
   const handleBillingUpdated = (updated: AdminBilling) => {
     setBillings((prev) =>
       prev
