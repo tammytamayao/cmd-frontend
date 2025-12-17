@@ -216,3 +216,31 @@ export type Stats = {
   total_overdue: number;
   new_subscribers: number;
 };
+
+export type BillingDetailsModalProps = {
+  open: boolean;
+  onClose: () => void;
+  loading: boolean;
+  error: string | null;
+  billing: AdminBilling | null;
+};
+
+export type BillingTableProps = {
+  billings: AdminBilling[];
+  meta?: PaginationMeta | null;
+  onPageChange: (page: number) => void;
+
+  onRowClick: (billing: AdminBilling) => void;
+  onEdit: (billing: AdminBilling) => void;
+
+  today?: Date;
+};
+
+export type EditBillingModalProps = {
+  open: boolean;
+  onClose: () => void;
+  billing: AdminBilling | null;
+  onUpdated: (updated: AdminBilling) => void;
+};
+
+export type BillingStatusOption = "unpaid" | "paid";
