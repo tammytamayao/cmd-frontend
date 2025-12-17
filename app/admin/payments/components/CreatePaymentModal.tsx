@@ -8,31 +8,22 @@ import {
   fetchAdminBillingsBySubscriber,
 } from "@/lib/api";
 import { formatDate, formatCurrency } from "@/lib/helpers";
-import { AdminPayment } from "./EditPaymentModal";
 import { AdminModal } from "@/app/components/admin/AdminModal";
-
-type SubscriberOption = {
-  id: number;
-  label: string;
-  serial_number?: string | null;
-};
-
-type BillingOption = {
-  id: number;
-  label: string;
-  amount: number;
-};
-
-type Props = {
-  open: boolean;
-  onClose: () => void;
-  onCreated: (payment: AdminPayment) => void;
-};
+import {
+  AdminPayment,
+  BillingOption,
+  CreatePaymentModalProps,
+  SubscriberOption,
+} from "@/lib/types";
 
 const STATUS_OPTIONS = ["Processing", "Completed", "Failed"] as const;
 const METHOD_OPTIONS = ["GCash", "Cash", "Bank Transfer"] as const;
 
-export function CreatePaymentModal({ open, onClose, onCreated }: Props) {
+export function CreatePaymentModal({
+  open,
+  onClose,
+  onCreated,
+}: CreatePaymentModalProps) {
   const [subscribers, setSubscribers] = useState<SubscriberOption[]>([]);
   const [billings, setBillings] = useState<BillingOption[]>([]);
 
@@ -50,7 +41,6 @@ export function CreatePaymentModal({ open, onClose, onCreated }: Props) {
   const [loadingSubs, setLoadingSubs] = useState(false);
   const [loadingBills, setLoadingBills] = useState(false);
 
-  // pagination state for subscribers
   const [subsPage, setSubsPage] = useState(1);
   const [subsHasMore, setSubsHasMore] = useState(true);
   const [loadingMoreSubs, setLoadingMoreSubs] = useState(false);
@@ -58,7 +48,6 @@ export function CreatePaymentModal({ open, onClose, onCreated }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // reset when opened
   useEffect(() => {
     if (!open) return;
 
@@ -80,7 +69,6 @@ export function CreatePaymentModal({ open, onClose, onCreated }: Props) {
     setSaving(false);
   }, [open]);
 
-  // load subscribers page 1
   useEffect(() => {
     if (!open) return;
 
@@ -145,7 +133,6 @@ export function CreatePaymentModal({ open, onClose, onCreated }: Props) {
     }
   }, [open, loadingSubs, loadingMoreSubs, subsHasMore, subsPage]);
 
-  // when subscriber changes, load billings (unpaid)
   useEffect(() => {
     if (!open || !subscriberId) return;
 

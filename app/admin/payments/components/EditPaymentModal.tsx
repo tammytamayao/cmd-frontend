@@ -5,50 +5,17 @@ import { formatCurrency, formatDate } from "@/lib/helpers";
 import { updateAdminPayment } from "@/lib/api";
 import { SelectDropdown } from "@/app/components/ui/SelectDropdown";
 import { AdminModal } from "@/app/components/admin/AdminModal";
-
-type AdminPaymentSubscriber = {
-  id: number | null;
-  serial_number: string | null;
-  first_name: string | null;
-  last_name: string | null;
-};
-
-type AdminPaymentReceipt = {
-  filename: string | null;
-  size: number | null;
-  mime_type: string | null;
-  uploaded_at: string | null;
-};
-
-export type AdminPayment = {
-  id: number;
-  payment_date: string | null;
-  amount: number;
-  payment_method: string;
-  status: string;
-  attachment: string | null;
-  reference_number: string | null;
-  invoice_number?: string | null;
-  billing_id: number;
-  billing_period_start: string | null;
-  billing_period_end: string | null;
-  billing_status: string | null;
-  subscriber: AdminPaymentSubscriber;
-  receipt: AdminPaymentReceipt;
-  receipt_url?: string | null;
-};
-
-type Props = {
-  open: boolean;
-  onClose: () => void;
-  payment: AdminPayment | null;
-  onUpdated: (payment: AdminPayment) => void;
-};
+import { AdminPayment, EditPaymentModalProps } from "@/lib/types";
 
 const STATUS_OPTIONS = ["Processing", "Completed", "Failed"] as const;
 const METHOD_OPTIONS = ["GCash", "Cash", "Bank Transfer"] as const;
 
-export function EditPaymentModal({ open, onClose, payment, onUpdated }: Props) {
+export function EditPaymentModal({
+  open,
+  onClose,
+  payment,
+  onUpdated,
+}: EditPaymentModalProps) {
   const [status, setStatus] = useState<string>("");
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [amount, setAmount] = useState("");

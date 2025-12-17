@@ -8,32 +8,7 @@ import {
   titleCase,
 } from "@/lib/helpers";
 import { AdminModal } from "@/app/components/admin/AdminModal";
-
-type PaymentLike = {
-  payment_date: string | null;
-  amount: number;
-  payment_method: string;
-  status: string;
-  reference_number?: string | null;
-  invoice_number?: string | null;
-  billing_period_start?: string | null;
-  billing_period_end?: string | null;
-  receipt?: {
-    filename?: string | null;
-    size?: number | null;
-    mime_type?: string | null;
-    uploaded_at?: string | null;
-  } | null;
-  receipt_url?: string | null;
-};
-
-type PaymentDetailsModalProps = {
-  open: boolean;
-  onClose: () => void;
-  payment: PaymentLike | null;
-  loading: boolean;
-  error: string | null;
-};
+import { PaymentDetailsModalProps } from "@/lib/types";
 
 function statusLabel(status: string): string {
   const s = status.toLowerCase();
