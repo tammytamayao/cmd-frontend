@@ -1,49 +1,7 @@
 "use client";
-
-import type { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminDataTable } from "@/app/components/admin/AdminDataTable";
 import { formatDate, statusBadgeClasses, titleCase } from "@/lib/helpers";
-
-type AdminPaymentSubscriber = {
-  id: number | null;
-  serial_number: string | null;
-  first_name: string | null;
-  last_name: string | null;
-};
-
-type AdminPaymentReceipt = {
-  filename: string | null;
-  size: number | null;
-  mime_type: string | null;
-  uploaded_at: string | null;
-};
-
-export type AdminPayment = {
-  id: number;
-  payment_date: string | null;
-  amount: number;
-  payment_method: string;
-  status: string;
-  attachment: string | null;
-  reference_number: string | null;
-  invoice_number?: string | null;
-  billing_id: number;
-  billing_period_start: string | null;
-  billing_period_end: string | null;
-  billing_status: string | null;
-  subscriber: AdminPaymentSubscriber;
-  receipt: AdminPaymentReceipt;
-  receipt_url?: string | null;
-};
-
-type PaymentTableProps = {
-  payments: AdminPayment[];
-  meta?: PaginationMeta | null;
-  onPageChange: (page: number) => void;
-
-  onRowClick: (payment: AdminPayment) => void;
-  onEdit: (payment: AdminPayment) => void;
-};
+import { PaymentTableProps } from "@/lib/types";
 
 export function PaymentsTable({
   payments,
