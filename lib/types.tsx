@@ -354,3 +354,49 @@ export type SubscriberDetailsModalProps = {
   loading?: boolean;
   error?: string | null;
 };
+
+export type CreateSubscriberForm = {
+  last_name: string;
+  first_name: string;
+  phone_number: string;
+  alternative_phone: string;
+  zone: string;
+
+  collector: string;
+  date_installed: string;
+  serial_number: string;
+  tvconnect: boolean;
+
+  package: string;
+  plan: string;
+  brate: string;
+  package_speed: string;
+
+  mc_address: string;
+  stb: string;
+  cas: string;
+
+  requires_password_change: boolean;
+};
+
+export type SubscriberFormBase = {
+  last_name: string;
+  first_name: string;
+  phone_number: string;
+  alternative_phone: string;
+  zone: string;
+
+  collector: string;
+  date_installed: string;
+  serial_number: string;
+  tvconnect: boolean;
+
+  package: string;
+  plan: string;
+  brate: string;
+  package_speed: string;
+
+  mc_address: string;
+  stb: string;
+  cas: string;
+};
