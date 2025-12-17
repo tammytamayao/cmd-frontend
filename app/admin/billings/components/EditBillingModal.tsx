@@ -2,22 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { formatDate } from "@/lib/helpers";
-import type { AdminBilling } from "@/lib/types";
 import { updateAdminBilling } from "@/lib/api";
 import { SelectDropdown } from "@/app/components/ui/SelectDropdown";
 import { AdminModal } from "@/app/components/admin/AdminModal";
+import { BillingStatusOption, EditBillingModalProps } from "@/lib/types";
 
-export type AdminBillingForEdit = AdminBilling;
-
-type EditBillingModalProps = {
-  open: boolean;
-  onClose: () => void;
-  billing: AdminBillingForEdit | null;
-  onUpdated: (updated: AdminBillingForEdit) => void;
-};
-
-const STATUS_OPTIONS = ["unpaid", "paid"] as const;
-type BillingStatusOption = (typeof STATUS_OPTIONS)[number];
+const STATUS_OPTIONS: BillingStatusOption[] = ["unpaid", "paid"];
 
 export function EditBillingModal({
   open,

@@ -1,7 +1,6 @@
 "use client";
 
-import type { AdminBilling } from "@/lib/types";
-import type { PaginationMeta } from "@/app/components/admin/Pagination";
+import type { BillingTableProps } from "@/lib/types";
 import {
   formatDate,
   titleCase,
@@ -9,17 +8,6 @@ import {
   normalizeBillingStatus,
 } from "@/lib/helpers";
 import { AdminDataTable } from "@/app/components/admin/AdminDataTable";
-
-type BillingTableProps = {
-  billings: AdminBilling[];
-  meta?: PaginationMeta | null;
-  onPageChange: (page: number) => void;
-
-  onRowClick: (billing: AdminBilling) => void;
-  onEdit: (billing: AdminBilling) => void;
-
-  today?: Date; // allow override for tests
-};
 
 export function BillingsTable({
   billings,

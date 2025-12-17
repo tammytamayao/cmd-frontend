@@ -7,16 +7,8 @@ import {
   statusBadgeClasses,
   titleCase,
 } from "@/lib/helpers";
-import type { AdminBilling } from "@/lib/types";
+import type { BillingDetailsModalProps } from "@/lib/types";
 import { AdminModal } from "@/app/components/admin/AdminModal";
-
-type BillingDetailsModalProps = {
-  open: boolean;
-  onClose: () => void;
-  loading: boolean;
-  error: string | null;
-  billing: AdminBilling | null;
-};
 
 export function BillingDetailsModal({
   open,
