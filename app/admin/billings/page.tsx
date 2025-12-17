@@ -10,10 +10,7 @@ import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
 import { BillingDetailsModal } from "@/app/admin/billings/components/BillingDetailsModal";
-import {
-  EditBillingModal,
-  AdminBillingForEdit,
-} from "@/app/admin/billings/components/EditBillingModal";
+import { EditBillingModal } from "@/app/admin/billings/components/EditBillingModal";
 import { useRouter } from "next/navigation";
 
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
@@ -65,7 +62,7 @@ export default function AdminBillingsPage() {
   };
 
   // after successful update, update local list
-  const handleBillingUpdated = (updated: AdminBillingForEdit) => {
+  const handleBillingUpdated = (updated: AdminBilling) => {
     setBillings((prev) =>
       prev
         ? prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
@@ -73,7 +70,6 @@ export default function AdminBillingsPage() {
     );
   };
 
-  // Check token and load billings
   useEffect(() => {
     let cancelled = false;
 
@@ -109,8 +105,6 @@ export default function AdminBillingsPage() {
     };
   }, [page]);
 
-  // ---------- Handlers for view / edit ----------
-
   const handleViewDetails = async (id: number) => {
     const t = getToken();
     if (!t) {
@@ -140,8 +134,6 @@ export default function AdminBillingsPage() {
     setSelectedBilling(null);
     setDetailsError(null);
   };
-
-  // ---------- Early states ----------
 
   if (err && !billings) {
     return (
@@ -210,7 +202,7 @@ export default function AdminBillingsPage() {
       <EditBillingModal
         open={editOpen}
         onClose={handleCloseEdit}
-        billing={editBilling as AdminBillingForEdit | null}
+        billing={editBilling as AdminBilling | null}
         onUpdated={handleBillingUpdated}
       />
     </div>
