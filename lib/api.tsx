@@ -386,8 +386,11 @@ export async function createAdminBillingBatch(
   payload: {
     group?: "all" | "specific";
     subscriber_ids?: (number | string)[];
-    billing_month?: string | null;
+
+    billing_start: string;
+    billing_end: string;
     due_date: string;
+
     adjustment_per_account?: number;
     adjustment_notes?: string | null;
   },
