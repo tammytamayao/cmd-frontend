@@ -139,3 +139,38 @@ export type PaymentsTabProps = {
 export type BillingsTabProps = {
   bills: Billing[];
 };
+
+export type PaymentMethod = "GCASH" | "BANK_TRANSFER" | "CASH";
+
+export type CreatePaymentProps = {
+  fullName: string;
+  packageName: string;
+  planName: string;
+  amount: number;
+
+  billings: Billing[];
+  billingsLoading: boolean;
+  billingId: string | number | null;
+  onBillingChange: (id: string | number) => void;
+
+  paymentMethod: PaymentMethod;
+  onPaymentMethodChange: (m: PaymentMethod) => void;
+};
+
+export type PaymentConfirmProps = {
+  inputId: string;
+
+  receiptRequired: boolean;
+
+  accept: string[];
+  file: File | null;
+  uploadError: string | null;
+  onFiles: (files: FileList | null) => void;
+  onDrop: (e: React.DragEvent<HTMLLabelElement>) => void;
+  onRemove: () => void;
+
+  submitError: string | null;
+  submitDisabled: boolean;
+  submitting: boolean;
+  onSubmit: () => void;
+};
