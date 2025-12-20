@@ -3,24 +3,21 @@
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
 import { fetchAdminBillings, fetchAdminBilling } from "@/lib/api";
-import {
-  formatDate,
-  titleCase,
-  statusBadgeClasses,
-  normalizeBillingStatus,
-} from "@/lib/helpers";
 
 import type { AdminBilling } from "@/lib/types";
-import { Pagination, PaginationMeta } from "@/app/components/admin/Pagination";
+import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
-import { BillingDetailsModal } from "@/app/components/BillingDetailsModal";
+import { BillingDetailsModal } from "@/app/admin/billings/components/BillingDetailsModal";
 import {
   EditBillingModal,
   AdminBillingForEdit,
-} from "@/app/components/EditBillingModal";
+} from "@/app/admin/billings/components/EditBillingModal";
 import { useRouter } from "next/navigation";
+
+import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
+import { BillingsTable } from "@/app/admin/billings/components/BillingsTable";
 
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
@@ -165,17 +162,15 @@ export default function AdminBillingsPage() {
   }
 
   const today = new Date();
+  const hasRows = !!billings && billings.length > 0;
 
   // ---------- Main UI ----------
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {/* Shared admin sidebar */}
       <AdminSidebar active="billings" />
 
-      {/* Main content */}
       <main className="flex-1 flex flex-col">
-        {/* Shared admin header */}
         <AdminHeader
           title="Billing Accounts"
           subtitle="View and process all subscribers' billing records."
@@ -183,153 +178,27 @@ export default function AdminBillingsPage() {
           onAction={() => router.push("/admin/billings/new")}
         />
 
-        {/* Table of billings */}
         <section className="flex-1 px-8 py-6">
-          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-            {loading && (!billings || billings.length === 0) && (
-              <div className="p-6 text-center text-gray-500">
-                Loading billings...
-              </div>
-            )}
-
-            {billings && billings.length === 0 && !loading && (
-              <div className="p-6 text-center text-gray-500">
-                No billing records found.
-              </div>
-            )}
-
-            {billings && billings.length > 0 && (
-              <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      SUBSCRIBER ID
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      SUBSCRIBER NAME
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      ADDRESS
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      BILLING PERIOD
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      DUE DATE
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">
-                      STATUS
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500">
-                      ACTIONS
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {billings.map((b, idx) => {
-                    // Base status from DB (paid/unpaid)
-                    const normalized = normalizeBillingStatus(b.status);
-
-                    const isPaid = normalized === "paid";
-                    const dueDateObj = new Date(b.due_date as string);
-                    const hasValidDueDate = !Number.isNaN(dueDateObj.getTime());
-                    const isOverdue =
-                      !isPaid && hasValidDueDate && dueDateObj < today;
-                    const isUnpaid = !isPaid && !isOverdue;
-
-                    // uiStatus is what we actually show to the user
-                    const uiStatus = isPaid
-                      ? "paid"
-                      : isOverdue
-                      ? "overdue"
-                      : "unpaid";
-
-                    return (
-                      <tr
-                        key={b.id}
-                        onClick={() => handleViewDetails(b.id)}
-                        className={`${
-                          idx % 2 === 0 ? "bg-white" : "bg-gray-50/70"
-                        } cursor-pointer hover:bg-indigo-50/50 transition-colors`}
-                      >
-                        {/* Subscriber ID */}
-                        <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
-                          {b.subscriber?.serial_number || "—"}
-                        </td>
-
-                        {/* Subscriber name */}
-                        <td className="px-4 py-3 align-middle">
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-900">
-                              {b.subscriber?.last_name},{" "}
-                              {b.subscriber?.first_name}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Zone */}
-                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
-                          {b.subscriber?.zone || "—"}
-                        </td>
-
-                        {/* Billing period */}
-                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
-                          {b.start_date && b.end_date ? (
-                            <>
-                              {formatDate(b.start_date)} –{" "}
-                              {formatDate(b.end_date)}
-                            </>
-                          ) : (
-                            <span className="text-gray-400">N/A</span>
-                          )}
-                        </td>
-
-                        {/* Due date */}
-                        <td className="px-4 py-3 align-middle text-sm text-gray-700">
-                          {formatDate(b.due_date as string)}
-                        </td>
-
-                        {/* Status (derived overdue where applicable) */}
-                        <td className="px-4 py-3 align-middle">
-                          {b.status ? (
-                            <span
-                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${statusBadgeClasses(
-                                uiStatus
-                              )}`}
-                            >
-                              {titleCase(uiStatus)}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-400">—</span>
-                          )}
-                        </td>
-
-                        {/* Actions: Edit button that does NOT trigger row click */}
-                        <td className="px-4 py-3 align-middle text-right space-x-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenEdit(b.id);
-                            }}
-                            className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
-                          >
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-
-            {/* Shared pagination component */}
-            <Pagination meta={meta} onPageChange={setPage} />
-          </div>
+          <AdminTableCard
+            hasRows={hasRows}
+            loading={loading && (!billings || billings.length === 0)}
+            emptyTitle="No billing records yet"
+            emptyDescription="Create a billing record to start tracking due dates and statuses."
+            emptyActionLabel="Add Billing"
+            onEmptyAction={() => router.push("/admin/billings/new")}
+          >
+            <BillingsTable
+              billings={billings ?? []}
+              meta={hasRows ? meta : null}
+              onPageChange={setPage}
+              onRowClick={(b) => handleViewDetails(b.id)}
+              onEdit={(b) => handleOpenEdit(b.id)}
+              today={today}
+            />
+          </AdminTableCard>
         </section>
       </main>
 
-      {/* View details modal */}
       <BillingDetailsModal
         open={detailsOpen}
         onClose={handleCloseDetails}
@@ -338,7 +207,6 @@ export default function AdminBillingsPage() {
         billing={selectedBilling}
       />
 
-      {/* Edit billing modal */}
       <EditBillingModal
         open={editOpen}
         onClose={handleCloseEdit}
