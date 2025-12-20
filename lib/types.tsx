@@ -97,17 +97,7 @@ export type Me = {
   first_name: string;
   last_name: string;
   full_name: string;
-  phone_number: string;
   plan: string;
   brate: number;
-  package: string;
-  package_speed: number;
   serial_number: string;
-  amount_due: number;
-  due_on: string;
-  zone: string;
-  date_installed: string;
 };
-
-export type LoginMode = "subscriber" | "admin";
-export type ValidationResult = { ok: true } | { ok: false; message: string };
