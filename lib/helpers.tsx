@@ -48,14 +48,6 @@ export function normalizeBillingStatus(
   return "paid";
 }
 
-export function paymentTone(status: string): "green" | "red" | "gray" {
-  const lower = status.toLowerCase();
-  if (lower === "confirmed") return "green";
-  if (lower === "processing") return "gray";
-  if (lower === "failed" || lower === "rejected") return "red"; // 🔹 include rejected
-  return "gray";
-}
-
 export function titleCase(s: string) {
   if (!s) return s;
   return s.slice(0, 1).toUpperCase() + s.slice(1).toLowerCase();
@@ -91,4 +83,29 @@ export function validate(
 
 export function normalizeError(e: unknown) {
   return e instanceof Error ? e.message : "Login failed";
+}
+
+export function billingTone(status: string): "success" | "danger" | "neutral" {
+  const s = normalizeBillingStatus(status);
+  if (s === "paid") return "success";
+  if (s === "overdue") return "danger";
+  return "neutral"; // unpaid
+}
+
+export function paymentTone(
+  status: string
+): "success" | "danger" | "info" | "neutral" {
+  const s = status.toLowerCase();
+  if (s === "completed" || s === "paid") return "success";
+  if (s === "processing") return "info";
+  if (s === "failed" || s === "rejected") return "danger";
+  return "neutral";
+}
+
+export function paymentLabel(status: string) {
+  const s = status.toLowerCase();
+  if (s === "paid" || s === "completed") return "Completed";
+  if (s === "failed" || s === "rejected") return "Rejected";
+  if (s === "processing") return "Processing";
+  return titleCase(status);
 }
