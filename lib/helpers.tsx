@@ -1,3 +1,5 @@
+import { LoginMode, ValidationResult } from "./types";
+
 export function formatCurrency(n: number) {
   return n.toLocaleString("en-PH", { style: "currency", currency: "PHP" });
 }
@@ -57,4 +59,36 @@ export function paymentTone(status: string): "green" | "red" | "gray" {
 export function titleCase(s: string) {
   if (!s) return s;
   return s.slice(0, 1).toUpperCase() + s.slice(1).toLowerCase();
+}
+
+export function validate(
+  mode: LoginMode,
+  serialNumber: string,
+  email: string,
+  password: string
+): ValidationResult {
+  const pwd = password.trim();
+  if (pwd.length < 6)
+    return { ok: false, message: "Password must be at least 6 characters." };
+
+  if (mode === "subscriber") {
+    const sn = serialNumber.trim();
+    if (!sn || sn.length < 6 || !sn.includes("-")) {
+      return {
+        ok: false,
+        message: "Please enter a valid serial number (e.g. 105959-210).",
+      };
+    }
+    return { ok: true };
+  }
+
+  const em = email.trim();
+  if (!em || !em.includes("@"))
+    return { ok: false, message: "Please enter a valid email address." };
+
+  return { ok: true };
+}
+
+export function normalizeError(e: unknown) {
+  return e instanceof Error ? e.message : "Login failed";
 }

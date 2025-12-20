@@ -1,14 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import FieldRow from "@/app/components/ui/FieldRow";
 import { formatCurrency, formatDate } from "@/lib/helpers";
-import { useAuthCurrentUser } from "@/app/hooks/useAuthCurrentUser";
-import PageShell from "@/app/components/PageShell";
-import LoadingCard from "@/app/components/LoadingCard";
 
-function AccountDetailsCard({
+export function AccountDetailsCard({
   fullName,
   serialNumber,
   zone,
@@ -28,7 +23,7 @@ function AccountDetailsCard({
   );
 }
 
-function AmountDueCard({
+export function AmountDueCard({
   amountDue,
   dueOn,
   onMakePayment,
@@ -49,6 +44,7 @@ function AmountDueCard({
         <p className="text-5xl sm:text-6xl font-extrabold tracking-tight">
           {formatCurrency(amountDue ?? 0)}
         </p>
+
         {dueDate && (
           <p className="text-sm text-orange-600 mt-3">Due by {dueDate}</p>
         )}
@@ -64,7 +60,7 @@ function AmountDueCard({
   );
 }
 
-function CurrentPlanCard({
+export function CurrentPlanCard({
   packageName,
   plan,
   packageSpeed,
@@ -93,52 +89,3 @@ function CurrentPlanCard({
     </div>
   );
 }
-
-function DashboardInner() {
-  const router = useRouter();
-  const { user, loading } = useAuthCurrentUser();
-
-  if (loading) {
-    return (
-      <PageShell>
-        <LoadingCard />
-      </PageShell>
-    );
-  }
-
-  if (!user) return null;
-
-  return (
-    <PageShell>
-      <div className="grid lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-4 order-1 lg:order-1">
-          <AccountDetailsCard
-            fullName={user.full_name}
-            serialNumber={user.serial_number}
-            zone={user.zone}
-          />
-        </div>
-
-        <div className="lg:col-span-8 order-2 lg:order-1">
-          <AmountDueCard
-            amountDue={user.amount_due ?? 0}
-            dueOn={user.due_on ?? null}
-            onMakePayment={() => router.push(`/payment?subscriber=${user.id}`)}
-          />
-        </div>
-
-        <div className="lg:col-span-4 order-3 lg:order-2">
-          <CurrentPlanCard
-            packageName={user.package}
-            plan={user.plan}
-            packageSpeed={user.package_speed}
-            monthlyRate={user.brate ?? 0}
-            installedOn={user.date_installed ?? null}
-          />
-        </div>
-      </div>
-    </PageShell>
-  );
-}
-
-export default dynamic(() => Promise.resolve(DashboardInner), { ssr: false });
