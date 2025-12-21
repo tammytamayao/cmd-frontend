@@ -7,7 +7,7 @@ import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
 import { fetchAllPaymentss, fetchAdminPayment } from "@/lib/api";
-import { PaymentDetailsModal } from "@/app/components/PaymentDetailsModal";
+import { PaymentDetailsModal } from "@/app/admin/payments/components/PaymentDetailsModal";
 import {
   EditPaymentModal,
   AdminPayment as AdminPaymentForEdit,

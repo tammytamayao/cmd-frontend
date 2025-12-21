@@ -9,7 +9,7 @@ import { YearDropdown } from "@/app/components/ui/YearDropdown";
 import { Segmented } from "@/app/components/ui/Segmented";
 import { BillingsTab } from "@/app/billing/components/BillingsTab";
 import { PaymentsTab } from "@/app/billing/components/PaymentsTab";
-import { PaymentDetailsModal } from "@/app/components/PaymentDetailsModal";
+import { PaymentDetailsModal } from "@/app/admin/payments/components/PaymentDetailsModal";
 import type { Billing, HistoryTab, Payment } from "@/lib/types";
 
 import { useAuthCurrentUser } from "@/app/hooks/useAuthCurrentUser";
