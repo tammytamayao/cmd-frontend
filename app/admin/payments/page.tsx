@@ -6,26 +6,28 @@ import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
-import { fetchAllPaymentss, fetchAdminPayment } from "@/lib/api";
+import { fetchAllPayments, fetchAdminPayment } from "@/lib/api";
 import { PaymentDetailsModal } from "@/app/admin/payments/components/PaymentDetailsModal";
-import {
-  EditPaymentModal,
-  AdminPayment as AdminPaymentForEdit,
-} from "@/app/admin/payments/components/EditPaymentModal";
+import { EditPaymentModal } from "@/app/admin/payments/components/EditPaymentModal";
 import { CreatePaymentModal } from "@/app/admin/payments/components/CreatePaymentModal";
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
 import { PaymentsTable } from "@/app/admin/payments/components/PaymentsTable";
 import { AdminPayment } from "@/lib/types";
-
-// ---------------- Main Page ----------------
+import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
+import { useDebounce } from "@/app/hooks/useDebounce";
 
 export default function AdminPaymentsPage() {
   const token = getToken();
+
   const [payments, setPayments] = useState<AdminPayment[] | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
   const [err, setErr] = useState<string | null>(null);
+
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
+
+  const [tableLoading, setTableLoading] = useState(false);
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<AdminPayment | null>(
@@ -33,16 +35,25 @@ export default function AdminPaymentsPage() {
   );
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
+
   const [editOpen, setEditOpen] = useState(false);
   const [editPayment, setEditPayment] = useState<AdminPayment | null>(null);
+
   const [createOpen, setCreateOpen] = useState(false);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   useEffect(() => {
     if (!token) return;
 
     let cancelled = false;
 
-    fetchAllPaymentss(page, token)
+    setTableLoading(true);
+    setErr(null);
+
+    fetchAllPayments(page, token, debouncedSearch)
       .then((res) => {
         if (cancelled) return;
         setPayments(res.data);
@@ -51,27 +62,18 @@ export default function AdminPaymentsPage() {
       .catch((e) => {
         if (cancelled) return;
         setErr(e instanceof Error ? e.message : "Failed to load payments");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setTableLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [page, token]);
+  }, [page, token, debouncedSearch]);
 
-  const filteredPayments = payments?.filter((p) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      String(p.id).includes(q) ||
-      (p.reference_number || "").toLowerCase().includes(q) ||
-      (p.invoice_number || "").toLowerCase().includes(q) ||
-      (p.payment_method || "").toLowerCase().includes(q) ||
-      (p.subscriber?.serial_number || "").toLowerCase().includes(q) ||
-      (p.subscriber?.last_name || "").toLowerCase().includes(q)
-    );
-  });
-
-  const hasRows = !!filteredPayments && filteredPayments.length > 0;
+  const hasRows = !!payments && payments.length > 0;
 
   const handleViewDetails = async (id: number) => {
     if (!token) return;
@@ -119,6 +121,7 @@ export default function AdminPaymentsPage() {
   };
 
   const handlePaymentUpdated = (updated: AdminPayment) => {
+    // Update the row in the currently displayed page (best effort)
     setPayments((prev) =>
       prev
         ? prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
@@ -136,7 +139,8 @@ export default function AdminPaymentsPage() {
     );
   }
 
-  if (!payments) {
+  // Initial load only
+  if (!payments && !tableLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-gray-600 text-sm">Loading payments…</div>
@@ -154,11 +158,19 @@ export default function AdminPaymentsPage() {
           subtitle="Create and process payment of subscribers."
           actionLabel="Add Payment"
           onAction={() => setCreateOpen(true)}
+          rightSlot={
+            <AdminSearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Search subscriber number, status, name…"
+            />
+          }
         />
 
         <section className="flex-1 px-8 py-6">
           <AdminTableCard
             hasRows={hasRows}
+            loading={tableLoading}
             emptyTitle={
               search.trim()
                 ? "No payments match your search"
@@ -166,14 +178,12 @@ export default function AdminPaymentsPage() {
             }
             emptyDescription={
               search.trim()
-                ? "Try searching by invoice number, reference number, subscriber ID, or last name."
+                ? "Try searching by subscriber ID, payment method, last name or first name."
                 : "Create your first payment record to get started."
             }
-            emptyActionLabel="Add Payment"
-            onEmptyAction={() => setCreateOpen(true)}
           >
             <PaymentsTable
-              payments={filteredPayments ?? []}
+              payments={payments ?? []}
               meta={hasRows ? meta : null}
               onPageChange={setPage}
               onRowClick={(p) => handleViewDetails(p.id)}
@@ -194,7 +204,7 @@ export default function AdminPaymentsPage() {
       <EditPaymentModal
         open={editOpen}
         onClose={handleCloseEdit}
-        payment={editPayment as AdminPaymentForEdit | null}
+        payment={editPayment as AdminPayment | null}
         onUpdated={handlePaymentUpdated}
       />
 
@@ -202,6 +212,8 @@ export default function AdminPaymentsPage() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(newPayment: AdminPayment) => {
+          // If your server-side search is active, this might not match the current query
+          // but it's still ok to optimistically insert if you want:
           setPayments((prev) => (prev ? [newPayment, ...prev] : [newPayment]));
         }}
       />

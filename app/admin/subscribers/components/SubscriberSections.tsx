@@ -3,8 +3,8 @@
 import React from "react";
 import {
   PACKAGE_PLAN_OPTIONS,
+  SubscriberFormBase,
   type AdminSubscriber,
-  type EditSubscriberForm,
   type PackagePlanOption,
 } from "@/lib/types";
 import { computePackagePlanLabel, formatDate } from "@/lib/helpers";
@@ -15,6 +15,10 @@ import {
   ReadOnlyValue,
   Section,
 } from "@/app/admin/subscribers/components/SubscriberFormParts";
+
+type Setter<T> = React.Dispatch<React.SetStateAction<T>>;
+
+// ---------------- Read-only sections ----------------
 
 export function SubscriberPersonalInfoReadOnly({
   subscriber,
@@ -124,12 +128,14 @@ export function SubscriberPlanInfoReadOnly({
   );
 }
 
-export function SubscriberPersonalInfoEdit({
+// ---------------- Editable sections (generic) ----------------
+
+export function SubscriberPersonalInfoEdit<T extends SubscriberFormBase>({
   form,
   setForm,
 }: {
-  form: EditSubscriberForm;
-  setForm: React.Dispatch<React.SetStateAction<EditSubscriberForm | null>>;
+  form: T;
+  setForm: Setter<T>;
 }) {
   return (
     <Section
@@ -142,7 +148,7 @@ export function SubscriberPersonalInfoEdit({
             required
             value={form.last_name}
             onChange={(e) =>
-              setForm((p) => (p ? { ...p, last_name: e.target.value } : p))
+              setForm((p) => ({ ...p, last_name: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="TAMAYAO"
@@ -154,7 +160,7 @@ export function SubscriberPersonalInfoEdit({
             required
             value={form.first_name}
             onChange={(e) =>
-              setForm((p) => (p ? { ...p, first_name: e.target.value } : p))
+              setForm((p) => ({ ...p, first_name: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="PRINCESS CONNIE"
@@ -166,7 +172,7 @@ export function SubscriberPersonalInfoEdit({
             required
             value={form.phone_number}
             onChange={(e) =>
-              setForm((p) => (p ? { ...p, phone_number: e.target.value } : p))
+              setForm((p) => ({ ...p, phone_number: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="0995xxxxxxx"
@@ -177,9 +183,7 @@ export function SubscriberPersonalInfoEdit({
           <input
             value={form.alternative_phone}
             onChange={(e) =>
-              setForm((p) =>
-                p ? { ...p, alternative_phone: e.target.value } : p
-              )
+              setForm((p) => ({ ...p, alternative_phone: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
@@ -189,9 +193,7 @@ export function SubscriberPersonalInfoEdit({
           <input
             required
             value={form.zone}
-            onChange={(e) =>
-              setForm((p) => (p ? { ...p, zone: e.target.value } : p))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, zone: e.target.value }))}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="e.g. DANGAN RM"
           />
@@ -201,12 +203,12 @@ export function SubscriberPersonalInfoEdit({
   );
 }
 
-export function SubscriberPlanInfoEdit({
+export function SubscriberPlanInfoEdit<T extends SubscriberFormBase>({
   form,
   setForm,
 }: {
-  form: EditSubscriberForm;
-  setForm: React.Dispatch<React.SetStateAction<EditSubscriberForm | null>>;
+  form: T;
+  setForm: Setter<T>;
 }) {
   return (
     <Section
@@ -219,7 +221,7 @@ export function SubscriberPlanInfoEdit({
             required
             value={form.collector}
             onChange={(e) =>
-              setForm((p) => (p ? { ...p, collector: e.target.value } : p))
+              setForm((p) => ({ ...p, collector: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="e.g. MERVIN PEREZ"
@@ -232,7 +234,7 @@ export function SubscriberPlanInfoEdit({
             type="date"
             value={form.date_installed}
             onChange={(e) =>
-              setForm((p) => (p ? { ...p, date_installed: e.target.value } : p))
+              setForm((p) => ({ ...p, date_installed: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
@@ -243,7 +245,7 @@ export function SubscriberPlanInfoEdit({
             required
             value={form.serial_number}
             onChange={(e) =>
-              setForm((p) => (p ? { ...p, serial_number: e.target.value } : p))
+              setForm((p) => ({ ...p, serial_number: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="105959-210"
@@ -266,11 +268,9 @@ export function SubscriberPlanInfoEdit({
                 onChange={(opt: string) => {
                   const v = String(opt).trim().toUpperCase();
                   if (v.length === 1) {
-                    setForm((p) => (p ? { ...p, package: v, plan: "" } : p));
+                    setForm((p) => ({ ...p, package: v, plan: "" }));
                   } else {
-                    setForm((p) =>
-                      p ? { ...p, package: v[0], plan: v.slice(1) } : p
-                    );
+                    setForm((p) => ({ ...p, package: v[0], plan: v.slice(1) }));
                   }
                 }}
                 getLabel={(v: string) => String(v)}
@@ -283,9 +283,7 @@ export function SubscriberPlanInfoEdit({
                   type="checkbox"
                   checked={form.tvconnect}
                   onChange={(e) =>
-                    setForm((p) =>
-                      p ? { ...p, tvconnect: e.target.checked } : p
-                    )
+                    setForm((p) => ({ ...p, tvconnect: e.target.checked }))
                   }
                   className="h-4 w-4"
                 />
@@ -300,9 +298,7 @@ export function SubscriberPlanInfoEdit({
             required
             inputMode="numeric"
             value={form.brate}
-            onChange={(e) =>
-              setForm((p) => (p ? { ...p, brate: e.target.value } : p))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, brate: e.target.value }))}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="2299"
           />
@@ -314,7 +310,7 @@ export function SubscriberPlanInfoEdit({
             inputMode="numeric"
             value={form.package_speed}
             onChange={(e) =>
-              setForm((p) => (p ? { ...p, package_speed: e.target.value } : p))
+              setForm((p) => ({ ...p, package_speed: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="320"
@@ -326,7 +322,7 @@ export function SubscriberPlanInfoEdit({
             required
             value={form.mc_address}
             onChange={(e) =>
-              setForm((p) => (p ? { ...p, mc_address: e.target.value } : p))
+              setForm((p) => ({ ...p, mc_address: e.target.value }))
             }
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="04AB084D5174"
@@ -337,9 +333,7 @@ export function SubscriberPlanInfoEdit({
           <input
             required
             value={form.stb}
-            onChange={(e) =>
-              setForm((p) => (p ? { ...p, stb: e.target.value } : p))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, stb: e.target.value }))}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="S200959895"
           />
@@ -349,9 +343,7 @@ export function SubscriberPlanInfoEdit({
           <input
             required
             value={form.cas}
-            onChange={(e) =>
-              setForm((p) => (p ? { ...p, cas: e.target.value } : p))
-            }
+            onChange={(e) => setForm((p) => ({ ...p, cas: e.target.value }))}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
             placeholder="76394047"
           />

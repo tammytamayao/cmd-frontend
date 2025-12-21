@@ -14,13 +14,19 @@ import { SubscriberDetailsModal } from "@/app/admin/subscribers/components/Subsc
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
 import { SubscriberTable } from "@/app/admin/subscribers/components/SubscribersTable";
 
+import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
+import { useDebounce } from "@/app/hooks/useDebounce";
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [subs, setSubs] = useState<AdminSubscriber[] | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
   const [err, setErr] = useState<string | null>(null);
+
+  // server-side search
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 350);
 
   const router = useRouter();
 
@@ -29,6 +35,11 @@ export default function AdminDashboardPage() {
   const [viewing, setViewing] = useState<AdminSubscriber | null>(null);
   const [viewLoading, setViewLoading] = useState(false);
   const [viewErr, setViewErr] = useState<string | null>(null);
+
+  // reset page when raw search changes
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,15 +53,16 @@ export default function AdminDashboardPage() {
       }
 
       try {
-        const data = await fetchAllSubscribers(page, t);
+        const data = await fetchAllSubscribers(page, t, debouncedSearch);
         if (cancelled) return;
 
         setStats(data.stats);
         setSubs(data.data);
         setMeta(data.meta);
+        setErr(null);
       } catch (e) {
         if (!cancelled) {
-          setErr(e instanceof Error ? e.message : "Failed to load dashboard");
+          setErr(e instanceof Error ? e.message : "Failed to load subscribers");
         }
       }
     };
@@ -60,20 +72,9 @@ export default function AdminDashboardPage() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, debouncedSearch]);
 
-  const filteredSubs = subs?.filter((s) => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    const fullName = `${s.first_name || ""} ${s.last_name || ""}`.toLowerCase();
-    return (
-      fullName.includes(q) ||
-      (s.serial_number || "").toLowerCase().includes(q) ||
-      String(s.id).includes(q)
-    );
-  });
-
-  const hasRows = !!filteredSubs && filteredSubs.length > 0;
+  const hasRows = !!subs && subs.length > 0;
 
   async function openDetails(s: AdminSubscriber) {
     setViewErr(null);
@@ -125,6 +126,13 @@ export default function AdminDashboardPage() {
           subtitle="Overview of subscriber information."
           actionLabel="Add Subscriber"
           onAction={() => router.push("/admin/subscribers/new")}
+          rightSlot={
+            <AdminSearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Search subscriber number, name, address…"
+            />
+          }
         />
 
         <section className="flex-1 px-8 py-6 space-y-6">
@@ -144,7 +152,7 @@ export default function AdminDashboardPage() {
             onEmptyAction={() => router.push("/admin/subscribers/new")}
           >
             <SubscriberTable
-              subscribers={filteredSubs ?? []}
+              subscribers={subs ?? []}
               meta={hasRows ? meta : null}
               onPageChange={setPage}
               onRowClick={openDetails}
@@ -153,7 +161,6 @@ export default function AdminDashboardPage() {
           </AdminTableCard>
         </section>
 
-        {/* DETAILS MODAL */}
         <SubscriberDetailsModal
           open={!!viewing}
           subscriber={viewing}
@@ -166,7 +173,6 @@ export default function AdminDashboardPage() {
           error={viewErr}
         />
 
-        {/* EDIT MODAL */}
         <EditSubscriberModal
           open={!!editing}
           subscriber={editing}

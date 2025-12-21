@@ -137,12 +137,21 @@ export async function adminLogin(email: string, password: string) {
   return data;
 }
 
-export async function fetchAllSubscribers(page = 1, token?: string | null) {
+export async function fetchAllSubscribers(
+  page = 1,
+  token?: string | null,
+  q?: string
+) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
 
   const url = new URL(`${API_BASE}/api/admin/subscribers`);
   url.searchParams.set("page", String(page));
+
+  // ✅ add search query
+  if (q && q.trim()) {
+    url.searchParams.set("q", q.trim());
+  }
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${t}` },
@@ -153,6 +162,7 @@ export async function fetchAllSubscribers(page = 1, token?: string | null) {
   if (!res.ok) {
     throw new Error(data.error || `admin subscribers failed: ${res.status}`);
   }
+
   return data as {
     stats: {
       period_start: string;
@@ -171,9 +181,14 @@ export async function fetchAllSubscribers(page = 1, token?: string | null) {
   };
 }
 
-export async function fetchAllPaymentss(page: number, token: string) {
+export async function fetchAllPayments(
+  page: number,
+  token: string,
+  q?: string
+) {
   const url = new URL(`${API_BASE}/api/admin/payments`);
   url.searchParams.set("page", String(page));
+  if (q && q.trim()) url.searchParams.set("q", q.trim());
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${token}` },
@@ -258,7 +273,10 @@ export async function updateAdminPayment(
 export async function fetchAdminBillings(
   page = 1,
   token?: string | null,
-  subscriberId?: number | string
+  opts?: {
+    subscriberId?: number | string;
+    q?: string;
+  }
 ): Promise<{ data: AdminBilling[]; meta: PaginationMeta }> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -266,8 +284,12 @@ export async function fetchAdminBillings(
   const url = new URL(`${API_BASE}/api/admin/billings`);
   url.searchParams.set("page", String(page));
 
-  if (subscriberId != null) {
-    url.searchParams.set("subscriber_id", String(subscriberId));
+  if (opts?.subscriberId != null) {
+    url.searchParams.set("subscriber_id", String(opts.subscriberId));
+  }
+
+  if (opts?.q && opts.q.trim()) {
+    url.searchParams.set("q", opts.q.trim());
   }
 
   const res = await fetch(url.toString(), {
@@ -282,8 +304,8 @@ export async function fetchAdminBillings(
   }
 
   return {
-    data: data.data as AdminBilling[],
-    meta: data.meta as PaginationMeta,
+    data: (data.data || []) as AdminBilling[],
+    meta: (data.meta || null) as PaginationMeta,
   };
 }
 
@@ -386,8 +408,11 @@ export async function createAdminBillingBatch(
   payload: {
     group?: "all" | "specific";
     subscriber_ids?: (number | string)[];
-    billing_month?: string | null;
+
+    billing_start: string;
+    billing_end: string;
     due_date: string;
+
     adjustment_per_account?: number;
     adjustment_notes?: string | null;
   },

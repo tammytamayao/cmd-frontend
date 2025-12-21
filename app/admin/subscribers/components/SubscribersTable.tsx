@@ -49,7 +49,8 @@ export function SubscriberTable({
             {s.date_installed ? formatDate(s.date_installed) : "-"}
           </td>
           <td className="px-4 py-3 text-sm text-gray-900">
-            {s.package || "-"} {s.plan || "-"}
+            {s.package || "-"}
+            {s.plan || "-"}
           </td>
           <td className="px-4 py-3 text-sm text-gray-900">
             Up to {s.package_speed ?? 0} Mbps

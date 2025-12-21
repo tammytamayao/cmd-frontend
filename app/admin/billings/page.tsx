@@ -16,12 +16,21 @@ import { useRouter } from "next/navigation";
 import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
 import { BillingsTable } from "@/app/admin/billings/components/BillingsTable";
 
+import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
+import { useDebounce } from "@/app/hooks/useDebounce"; // ✅ adjust path if needed
+
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
 
   const [billings, setBillings] = useState<AdminBilling[] | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
+
+  // server-side search
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 350);
+
+  // table loading (prevents full-screen flicker)
   const [loading, setLoading] = useState(false);
 
   // ---------- View details modal state ----------
@@ -37,6 +46,11 @@ export default function AdminBillingsPage() {
   const [editBilling, setEditBilling] = useState<AdminBilling | null>(null);
 
   const router = useRouter();
+
+  // reset to page 1 when raw search changes
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   const handleOpenEdit = async (id: number) => {
     const t = getToken();
@@ -80,18 +94,20 @@ export default function AdminBillingsPage() {
       }
 
       setLoading(true);
+      setErr(null);
+
       try {
-        const res = await fetchAdminBillings(page, t);
+        const res = await fetchAdminBillings(page, t, { q: debouncedSearch });
         if (cancelled) return;
 
         setBillings(res.data);
         setMeta(res.meta);
-        setErr(null);
       } catch (e) {
         if (cancelled) return;
         const msg = e instanceof Error ? e.message : "Failed to load billings";
         setErr(msg);
-        setBillings([]);
+        setBillings([]); // show empty state
+        setMeta(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -102,7 +118,7 @@ export default function AdminBillingsPage() {
     return () => {
       cancelled = true;
     };
-  }, [page]);
+  }, [page, debouncedSearch]);
 
   const handleViewDetails = async (id: number) => {
     const t = getToken();
@@ -155,8 +171,6 @@ export default function AdminBillingsPage() {
   const today = new Date();
   const hasRows = !!billings && billings.length > 0;
 
-  // ---------- Main UI ----------
-
   return (
     <div className="min-h-screen flex bg-gray-50">
       <AdminSidebar active="billings" />
@@ -167,16 +181,29 @@ export default function AdminBillingsPage() {
           subtitle="View and process all subscribers' billing records."
           actionLabel="Add Billing"
           onAction={() => router.push("/admin/billings/new")}
+          rightSlot={
+            <AdminSearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Search subscriber number, status, name…"
+            />
+          }
         />
 
         <section className="flex-1 px-8 py-6">
           <AdminTableCard
             hasRows={hasRows}
-            loading={loading && (!billings || billings.length === 0)}
-            emptyTitle="No billing records yet"
-            emptyDescription="Create a billing record to start tracking due dates and statuses."
-            emptyActionLabel="Add Billing"
-            onEmptyAction={() => router.push("/admin/billings/new")}
+            loading={loading}
+            emptyTitle={
+              search.trim()
+                ? "No billings match your search"
+                : "No billing records yet"
+            }
+            emptyDescription={
+              search.trim()
+                ? "Try searching by subscriber number, name, billing status, or billing ID."
+                : "Create a billing record to start tracking due dates and statuses."
+            }
           >
             <BillingsTable
               billings={billings ?? []}

@@ -166,3 +166,7 @@ export function computePackagePlanLabel(s: AdminSubscriber | null): string {
   if (!s) return "-";
   return `${s.package ?? ""}${s.plan ?? ""}`.trim() || "-";
 }
+
+export function formatInt(n: number) {
+  return n.toLocaleString("en-PH");
+}
