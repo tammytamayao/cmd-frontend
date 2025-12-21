@@ -14,6 +14,7 @@ import { PaymentInstructions } from "@/app/payment/components/PaymentInstruction
 import { PaymentFormCard } from "@/app/payment/components/PaymentFormCard";
 import { formatRangeLabel } from "@/lib/helpers";
 import { PaymentConfirmCard } from "@/app/payment/components/PaymentConfirmCard";
+import { useNotification } from "../notification/NotificationProvider";
 
 export default function PaymentPage() {
   const router = useRouter();
@@ -21,6 +22,8 @@ export default function PaymentPage() {
 
   const token = useMemo(() => getToken(), []);
   const { user, loading: authLoading } = useAuthCurrentUser();
+
+  const { notify } = useNotification();
 
   const { billings, billingsLoading, billingId, setBillingId } =
     useOpenBillings(token);
@@ -105,7 +108,7 @@ export default function PaymentPage() {
       if (upload.file) form.append("receipt", upload.file);
 
       await createPayment(form, token);
-      alert("Payment submitted for verification. Thank you!");
+      notify("success", "Payment submitted for verification. Thank you!");
       upload.setFile(null);
       router.replace("/billing");
     } catch (e) {

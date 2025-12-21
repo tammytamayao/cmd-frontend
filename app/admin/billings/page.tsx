@@ -18,9 +18,11 @@ import { BillingsTable } from "@/app/admin/billings/components/BillingsTable";
 
 import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
 import { useDebounce } from "@/app/hooks/useDebounce"; // ✅ adjust path if needed
+import { useNotification } from "@/app/notification/NotificationProvider";
 
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
+  const { notify } = useNotification();
 
   const [billings, setBillings] = useState<AdminBilling[] | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
@@ -47,7 +49,6 @@ export default function AdminBillingsPage() {
 
   const router = useRouter();
 
-  // reset to page 1 when raw search changes
   useEffect(() => {
     setPage(1);
   }, [search]);
@@ -55,7 +56,8 @@ export default function AdminBillingsPage() {
   const handleOpenEdit = async (id: number) => {
     const t = getToken();
     if (!t) {
-      alert("No token found. Please log in as staff.");
+      const msg = "No token found. Please log in as staff.";
+      notify("error", msg);
       return;
     }
 
@@ -64,9 +66,9 @@ export default function AdminBillingsPage() {
       setEditBilling(res.data as AdminBilling);
       setEditOpen(true);
     } catch (e) {
-      alert(
-        e instanceof Error ? e.message : "Failed to load billing for editing."
-      );
+      const msg =
+        e instanceof Error ? e.message : "Failed to load payment for editing.";
+      notify("error", msg);
     }
   };
 
