@@ -28,7 +28,7 @@ export function useBillingHistory(
           if (!alive) return;
           setBillings((res.data as Billing[]) ?? []);
         } else {
-          const res = await fetchPayments(token, year);
+          const res = await fetchPayments(token, { year });
           if (!alive) return;
           setPayments((res.data as Payment[]) ?? []);
         }

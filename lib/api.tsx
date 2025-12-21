@@ -56,11 +56,27 @@ export async function fetchBillings(
   return res.json();
 }
 
-export async function fetchPayments(token?: string | null, year?: number) {
+export async function fetchPayments(
+  token?: string | null,
+  opts?: {
+    year?: number;
+    page?: number;
+    perPage?: number;
+    status?: string;
+    paymentMethod?: string;
+  }
+) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
+
   const url = new URL(`${API_BASE}/api/v1/payments`);
-  if (year) url.searchParams.set("year", String(year));
+
+  if (opts?.year) url.searchParams.set("year", String(opts.year));
+  if (opts?.page) url.searchParams.set("page", String(opts.page));
+  if (opts?.perPage) url.searchParams.set("per_page", String(opts.perPage));
+  if (opts?.status) url.searchParams.set("status", opts.status);
+  if (opts?.paymentMethod)
+    url.searchParams.set("payment_method", opts.paymentMethod);
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: `Bearer ${t}` },
