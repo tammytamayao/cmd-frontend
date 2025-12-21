@@ -15,9 +15,12 @@ import { PaymentsTable } from "@/app/admin/payments/components/PaymentsTable";
 import { AdminPayment } from "@/lib/types";
 import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
 import { useDebounce } from "@/app/hooks/useDebounce";
+import { useNotification } from "@/app/notification/NotificationProvider";
 
 export default function AdminPaymentsPage() {
   const token = getToken();
+
+  const { notify } = useNotification();
 
   const [payments, setPayments] = useState<AdminPayment[] | null>(null);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
@@ -103,9 +106,9 @@ export default function AdminPaymentsPage() {
       setEditPayment(res.data as AdminPayment);
       setEditOpen(true);
     } catch (e) {
-      alert(
-        e instanceof Error ? e.message : "Failed to load payment for editing."
-      );
+      const msg =
+        e instanceof Error ? e.message : "Failed to load payment for editing.";
+      notify("error", msg);
     }
   };
 

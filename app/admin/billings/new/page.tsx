@@ -15,6 +15,10 @@ import { FinalizeRunCard } from "@/app/admin/billings/components/FinalizeRunCard
 import { AdjustmentItem, BatchSummary } from "@/lib/types";
 import { formatCurrency, formatInt } from "@/lib/helpers";
 
+import { useNotification } from "@/app/notification/NotificationProvider";
+import { useConfirm } from "@/app/hooks/useConfirm";
+import { ConfirmModal } from "@/app/components/ConfirmModal"; // ✅ add
+
 function isValidISODate(d: string) {
   if (!d) return false;
   const dt = new Date(d);
@@ -23,11 +27,15 @@ function isValidISODate(d: string) {
 
 export default function AdminNewBillingPage() {
   const router = useRouter();
+  const { notify } = useNotification();
+  const confirmModal = useConfirm();
 
-  // NEW: billing range
+  const fail = (message: string) => {
+    notify("error", message);
+  };
+
   const [billingStart, setBillingStart] = useState("");
   const [billingEnd, setBillingEnd] = useState("");
-
   const [dueDate, setDueDate] = useState("");
 
   const [adjAmount, setAdjAmount] = useState("");
@@ -76,7 +84,15 @@ export default function AdminNewBillingPage() {
   const handleAddAdjustment = () => {
     const desc = adjustmentNotes.trim();
     const parsed = tryParseAdjAmount(adjAmount.trim());
-    if (!desc || parsed === null) return;
+
+    if (!desc) {
+      notify("warning", "Please enter an adjustment description.");
+      return;
+    }
+    if (parsed === null) {
+      notify("warning", "Please enter a valid adjustment amount.");
+      return;
+    }
 
     setAdjustments((prev) => [
       ...prev,
@@ -85,10 +101,13 @@ export default function AdminNewBillingPage() {
     setNextAdjId((id) => id + 1);
     setAdjustmentNotes("");
     setAdjAmount("");
+
+    notify("success", "Adjustment added.");
   };
 
   const handleRemoveAdjustment = (id: number) => {
     setAdjustments((prev) => prev.filter((a) => a.id !== id));
+    notify("info", "Adjustment removed.");
   };
 
   useEffect(() => {
@@ -98,14 +117,17 @@ export default function AdminNewBillingPage() {
       try {
         setSummaryLoading(true);
         setSummaryError(null);
+
         const result = await fetchAdminBillingBatchSummary("all", undefined);
         if (!cancelled) setBatchSummary(result);
       } catch (err: unknown) {
         if (cancelled) return;
         setBatchSummary(null);
-        setSummaryError(
-          err instanceof Error ? err.message : "Failed to load billing summary"
-        );
+
+        const msg =
+          err instanceof Error ? err.message : "Failed to load billing summary";
+        setSummaryError(msg);
+        notify("error", msg);
       } finally {
         if (!cancelled) setSummaryLoading(false);
       }
@@ -114,7 +136,7 @@ export default function AdminNewBillingPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [notify]);
 
   const buildPayload = (): Parameters<typeof createAdminBillingBatch>[0] => {
     const payload: Parameters<typeof createAdminBillingBatch>[0] = {
@@ -134,52 +156,71 @@ export default function AdminNewBillingPage() {
     return payload;
   };
 
-  const confirmProceed = (accounts: number, adjPerAccount: number) =>
-    window.confirm(
-      `This will create billings for ${formatInt(accounts)} account(s).\n\n` +
-        `Per-account adjustment: ${formatCurrency(adjPerAccount)}\n\n` +
-        "Do you want to continue?"
-    );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!billingStart) return alert("Please select a billing start date.");
-    if (!billingEnd) return alert("Please select a billing end date.");
+    if (!billingStart) return fail("Please select a billing start date.");
+    if (!billingEnd) return fail("Please select a billing end date.");
     if (!isValidISODate(billingStart) || !isValidISODate(billingEnd)) {
-      return alert("Please select valid billing start/end dates.");
+      return fail("Please select valid billing start/end dates.");
     }
     if (billingStart > billingEnd) {
-      return alert("Billing start date must be on or before billing end date.");
+      return fail("Billing start date must be on or before billing end date.");
     }
-
-    if (!dueDate) return alert("Please select a due date.");
+    if (!dueDate) return fail("Please select a due date.");
 
     if (!batchSummary) {
-      return alert(
+      return fail(
         "Billing summary not loaded yet. Please wait a moment and try again."
       );
     }
 
-    if (
-      !confirmProceed(
-        batchSummary.accounts_selected,
-        derived.adjustmentsPerAccount
-      )
-    )
+    // ✅ Replace window.confirm with modal confirm
+    const ok = await confirmModal.confirm({
+      title: "Create batch billing?",
+      description: (
+        <div className="space-y-2">
+          <p>
+            This will create billings for{" "}
+            <span className="font-semibold">
+              {formatInt(batchSummary.accounts_selected)}
+            </span>{" "}
+            account(s).
+          </p>
+          <p>
+            Per-account adjustment:{" "}
+            <span className="font-semibold">
+              {formatCurrency(derived.adjustmentsPerAccount)}
+            </span>
+          </p>
+          <p className="text-gray-500">This action cannot be undone.</p>
+        </div>
+      ),
+      confirmText: "Create billings",
+      cancelText: "Cancel",
+      confirmTone: "primary",
+    });
+
+    if (!ok) {
+      notify("info", "Batch billing creation cancelled.");
       return;
+    }
 
     try {
       setSubmitting(true);
+
       await createAdminBillingBatch(buildPayload());
-      alert(
+
+      notify(
+        "success",
         `Batch billing successfully created for ${formatInt(
           batchSummary.accounts_selected
         )} account(s).`
       );
+
       router.push("/admin/billings");
     } catch (err: unknown) {
-      alert(
+      fail(
         err instanceof Error ? err.message : "Failed to create batch billings."
       );
     } finally {
@@ -253,6 +294,18 @@ export default function AdminNewBillingPage() {
           </form>
         </section>
       </main>
+
+      <ConfirmModal
+        open={confirmModal.open}
+        onClose={confirmModal.close}
+        title={confirmModal.options.title}
+        description={confirmModal.options.description}
+        confirmText={confirmModal.options.confirmText}
+        cancelText={confirmModal.options.cancelText}
+        confirmTone={confirmModal.options.confirmTone}
+        loading={submitting}
+        onConfirm={confirmModal.accept}
+      />
     </div>
   );
 }
