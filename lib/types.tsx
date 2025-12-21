@@ -304,3 +304,53 @@ export type PaymentTableProps = {
   onRowClick: (payment: AdminPayment) => void;
   onEdit: (payment: AdminPayment) => void;
 };
+
+export type EditSubscriberForm = {
+  last_name: string;
+  first_name: string;
+  phone_number: string;
+  alternative_phone: string;
+  zone: string;
+
+  collector: string;
+  date_installed: string; // YYYY-MM-DD
+  serial_number: string;
+  tvconnect: boolean;
+
+  package: string;
+  plan: string;
+  brate: string;
+  package_speed: string;
+
+  mc_address: string;
+  stb: string;
+  cas: string;
+
+  requires_password_change: boolean;
+};
+
+export const PACKAGE_PLAN_OPTIONS = [
+  "MA",
+  "MB",
+  "MC",
+  "FM",
+  "RB",
+  "FC",
+  "FT",
+  "FH",
+  "FO",
+  "FG",
+  "FP",
+  "M",
+  "R",
+] as const;
+
+export type PackagePlanOption = (typeof PACKAGE_PLAN_OPTIONS)[number];
+
+export type SubscriberDetailsModalProps = {
+  open: boolean;
+  subscriber: AdminSubscriber | null;
+  onClose: () => void;
+  loading?: boolean;
+  error?: string | null;
+};
