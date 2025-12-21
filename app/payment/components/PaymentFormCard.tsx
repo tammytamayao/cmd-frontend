@@ -77,7 +77,8 @@ export function PaymentFormCard({
 
           <CompactDropdown
             value={paymentMethod}
-            options={["GCASH", "BANK_TRANSFER", "CASH"]}
+            // options={["GCASH", "BANK_TRANSFER", "CASH"]} -> Remove Bank Transfer first
+            options={["GCASH", "CASH"]}
             onChange={(v) => onPaymentMethodChange(v as PaymentMethod)}
             getLabel={(v) =>
               v === "GCASH"

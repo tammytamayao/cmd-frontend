@@ -48,7 +48,9 @@ export default function PaymentPage() {
     : "—";
 
   const receiptRequired =
-    payment_method === "GCASH" || payment_method === "BANK_TRANSFER";
+    payment_method === "GCASH" ||
+    payment_method === "BANK_TRANSFER" ||
+    payment_method === "CASH";
 
   const submitDisabled =
     submitting || !billingId || (receiptRequired && !upload.file);

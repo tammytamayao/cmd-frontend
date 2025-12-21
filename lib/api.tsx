@@ -113,7 +113,7 @@ export async function createPayment(form: FormData, token?: string | null) {
   });
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
-    throw new Error(`payment create failed: ${res.status} ${txt}`);
+    throw new Error(`payment creation failed: ${txt}`);
   }
   return res.json();
 }
