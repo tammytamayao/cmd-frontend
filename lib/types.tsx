@@ -232,7 +232,7 @@ export type BillingTableProps = {
 
   onRowClick: (billing: AdminBilling) => void;
   onEdit: (billing: AdminBilling) => void;
-
+  onDelete: (billing: AdminBilling) => void;
   today?: Date;
 };
 
@@ -303,6 +303,7 @@ export type PaymentTableProps = {
 
   onRowClick: (payment: AdminPayment) => void;
   onEdit: (payment: AdminPayment) => void;
+  onDelete: (payment: AdminPayment) => void;
 };
 
 export type EditSubscriberForm = {
