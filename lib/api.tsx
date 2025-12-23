@@ -686,3 +686,60 @@ export async function createAdminBilling(
 
   return { data: data.data as AdminBilling };
 }
+
+// api.ts
+export async function deleteAdminPayment(
+  id: number,
+  token?: string | null
+): Promise<void> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/payments/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${t}`,
+    },
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to delete payment");
+  }
+}
+
+export async function deleteAdminBilling(
+  id: number,
+  token?: string | null
+): Promise<void> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/billings/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${t}` },
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to delete billing");
+  }
+}
+
+export async function deleteAdminSubscriber(
+  id: number,
+  token?: string | null
+): Promise<void> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/subscribers/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${t}` },
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || "Failed to delete subscriber");
+  }
+}
