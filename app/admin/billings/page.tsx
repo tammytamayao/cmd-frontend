@@ -17,8 +17,10 @@ import { AdminTableCard } from "@/app/components/admin/AdminTableCard";
 import { BillingsTable } from "@/app/admin/billings/components/BillingsTable";
 
 import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
-import { useDebounce } from "@/app/hooks/useDebounce"; // ✅ adjust path if needed
+import { useDebounce } from "@/app/hooks/useDebounce";
 import { useNotification } from "@/app/notification/NotificationProvider";
+import { BillingChoiceModal } from "./components/BillingChoiceModal";
+import { CreateBillingModal } from "./components/CreateBillingModal";
 
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
@@ -47,7 +49,20 @@ export default function AdminBillingsPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editBilling, setEditBilling] = useState<AdminBilling | null>(null);
 
+  const [addChoiceOpen, setAddChoiceOpen] = useState(false);
+  const [createSingleOpen, setCreateSingleOpen] = useState(false);
+
   const router = useRouter();
+
+  const openBatch = () => {
+    setAddChoiceOpen(false);
+    router.push("/admin/billings/new");
+  };
+
+  const openSingle = () => {
+    setAddChoiceOpen(false);
+    setCreateSingleOpen(true);
+  };
 
   useEffect(() => {
     setPage(1);
@@ -182,7 +197,7 @@ export default function AdminBillingsPage() {
           title="Billing Accounts"
           subtitle="View and process all subscribers' billing records."
           actionLabel="Add Billing"
-          onAction={() => router.push("/admin/billings/new")}
+          onAction={() => setAddChoiceOpen(true)}
           rightSlot={
             <AdminSearchInput
               value={search}
@@ -218,6 +233,23 @@ export default function AdminBillingsPage() {
           </AdminTableCard>
         </section>
       </main>
+
+      {/* 1) choose modal */}
+      <BillingChoiceModal
+        open={addChoiceOpen}
+        onClose={() => setAddChoiceOpen(false)}
+        onSingle={openSingle}
+        onBatch={openBatch}
+      />
+
+      {/* 2) single create modal */}
+      <CreateBillingModal
+        open={createSingleOpen}
+        onClose={() => setCreateSingleOpen(false)}
+        onCreated={(newBilling: AdminBilling) => {
+          setBillings((prev) => (prev ? [newBilling, ...prev] : [newBilling]));
+        }}
+      />
 
       <BillingDetailsModal
         open={detailsOpen}

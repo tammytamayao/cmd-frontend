@@ -638,3 +638,51 @@ export async function fetchAdminSubscriber(
 
   return data as { data: AdminSubscriber };
 }
+
+async function parseJsonSafe(res: Response) {
+  try {
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
+export async function createAdminBilling(
+  payload: {
+    subscriber_id: number | string;
+    start_date: string;
+    end_date: string;
+    due_date: string;
+    amount: number;
+    status?: "unpaid" | "paid";
+    adjustment?: number | null;
+    adjustment_notes?: string | null;
+  },
+  token?: string | null
+): Promise<{ data: AdminBilling }> {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/billings`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${t}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const data = await parseJsonSafe(res);
+
+  if (!res.ok) {
+    const details =
+      Array.isArray(data?.details) && data.details.length
+        ? `: ${data.details.join(", ")}`
+        : "";
+    throw new Error(
+      (data?.error || `admin billing create failed (${res.status})`) + details
+    );
+  }
+
+  return { data: data.data as AdminBilling };
+}
