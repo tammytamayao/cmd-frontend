@@ -26,7 +26,7 @@ export function BillingsTable({
         { key: "billing_period", label: "BILLING PERIOD" },
         { key: "due_date", label: "DUE DATE" },
         { key: "status", label: "STATUS" },
-        { key: "actions", label: "ACTIONS", align: "right" },
+        { key: "actions", label: "", align: "right" },
       ]}
       rows={billings}
       rowKey={(b) => b.id}
