@@ -11,6 +11,7 @@ import {
   fetchAdminPayment,
   deleteAdminPayment,
 } from "@/lib/api";
+
 import { PaymentDetailsModal } from "@/app/admin/payments/components/PaymentDetailsModal";
 import { EditPaymentModal } from "@/app/admin/payments/components/EditPaymentModal";
 import { CreatePaymentModal } from "@/app/admin/payments/components/CreatePaymentModal";
@@ -23,9 +24,15 @@ import { useNotification } from "@/app/notification/NotificationProvider";
 import { useConfirm } from "@/app/hooks/useConfirm";
 import { ConfirmModal } from "@/app/components/ConfirmModal";
 
+import { PasswordPromptModal } from "@/app/components/admin/PasswordPromptModal";
+
+type PendingAction =
+  | { type: "edit"; paymentId: number }
+  | { type: "delete"; payment: AdminPayment }
+  | null;
+
 export default function AdminPaymentsPage() {
   const token = getToken();
-
   const { notify } = useNotification();
 
   const [payments, setPayments] = useState<AdminPayment[] | null>(null);
@@ -51,6 +58,9 @@ export default function AdminPaymentsPage() {
   const [createOpen, setCreateOpen] = useState(false);
 
   const confirmModal = useConfirm();
+
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
   useEffect(() => {
     setPage(1);
@@ -106,17 +116,78 @@ export default function AdminPaymentsPage() {
     }
   };
 
-  const handleOpenEdit = async (id: number) => {
-    if (!token) return;
+  const requestEdit = (p: AdminPayment) => {
+    setPendingAction({ type: "edit", paymentId: p.id });
+    setPwOpen(true);
+  };
 
-    try {
-      const res = await fetchAdminPayment(id, token);
-      setEditPayment(res.data as AdminPayment);
-      setEditOpen(true);
-    } catch (e) {
-      const msg =
-        e instanceof Error ? e.message : "Failed to load payment for editing.";
-      notify("error", msg);
+  const requestDelete = (p: AdminPayment) => {
+    setPendingAction({ type: "delete", payment: p });
+    setPwOpen(true);
+  };
+
+  const proceedAfterPassword = async () => {
+    if (!token || !pendingAction) return;
+
+    if (pendingAction.type === "edit") {
+      try {
+        const res = await fetchAdminPayment(pendingAction.paymentId, token);
+        setEditPayment(res.data as AdminPayment);
+        setEditOpen(true);
+      } catch (e) {
+        notify(
+          "error",
+          e instanceof Error ? e.message : "Failed to load payment for editing."
+        );
+      } finally {
+        setPendingAction(null);
+      }
+
+      return;
+    }
+
+    if (pendingAction.type === "delete") {
+      const payment = pendingAction.payment;
+      setPendingAction(null);
+
+      const ok = await confirmModal.confirm({
+        title: "Delete payment?",
+        description: (
+          <div className="space-y-2">
+            <p>
+              You are about to delete this payment for{" "}
+              <span className="font-semibold">
+                {payment.subscriber?.last_name},{" "}
+                {payment.subscriber?.first_name}
+              </span>
+              .
+            </p>
+            <p className="text-red-600 font-medium">
+              This action cannot be undone.
+            </p>
+          </div>
+        ),
+        confirmText: "Delete payment",
+        cancelText: "Cancel",
+        confirmTone: "danger",
+      });
+
+      if (!ok) return;
+
+      try {
+        await deleteAdminPayment(payment.id, token);
+
+        setPayments((prev) =>
+          prev ? prev.filter((x) => x.id !== payment.id) : prev
+        );
+
+        notify("success", "Payment deleted.");
+      } catch (e) {
+        notify(
+          "error",
+          e instanceof Error ? e.message : "Failed to delete payment."
+        );
+      }
     }
   };
 
@@ -132,55 +203,12 @@ export default function AdminPaymentsPage() {
   };
 
   const handlePaymentUpdated = (updated: AdminPayment) => {
-    // Update the row in the currently displayed page (best effort)
     setPayments((prev) =>
       prev
         ? prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
         : prev
     );
     notify("success", "Payment updated.");
-  };
-
-  const handleDeletePayment = async (payment: AdminPayment) => {
-    if (!token) return;
-
-    const ok = await confirmModal.confirm({
-      title: "Delete payment?",
-      description: (
-        <div className="space-y-2">
-          <p>
-            You are about to delete this payment for{" "}
-            <span className="font-semibold">
-              {payment.subscriber?.last_name}, {payment.subscriber?.first_name}
-            </span>
-            .
-          </p>
-          <p className="text-red-600 font-medium">
-            This action cannot be undone.
-          </p>
-        </div>
-      ),
-      confirmText: "Delete payment",
-      cancelText: "Cancel",
-      confirmTone: "danger",
-    });
-
-    if (!ok) return;
-
-    try {
-      await deleteAdminPayment(payment.id, token);
-
-      // Optimistically remove from table
-      setPayments((prev) =>
-        prev ? prev.filter((p) => p.id !== payment.id) : prev
-      );
-      notify("success", "Payment deleted.");
-    } catch (e) {
-      notify(
-        "error",
-        e instanceof Error ? e.message : "Failed to delete payment."
-      );
-    }
   };
 
   if (err) {
@@ -193,7 +221,6 @@ export default function AdminPaymentsPage() {
     );
   }
 
-  // Initial load only
   if (!payments && !tableLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -241,8 +268,8 @@ export default function AdminPaymentsPage() {
               meta={hasRows ? meta : null}
               onPageChange={setPage}
               onRowClick={(p) => handleViewDetails(p.id)}
-              onEdit={(p) => handleOpenEdit(p.id)}
-              onDelete={handleDeletePayment}
+              onEdit={(p) => requestEdit(p)}
+              onDelete={(p) => requestDelete(p)}
             />
           </AdminTableCard>
         </section>
@@ -267,10 +294,19 @@ export default function AdminPaymentsPage() {
         open={createOpen}
         onClose={() => setCreateOpen(false)}
         onCreated={(newPayment: AdminPayment) => {
-          // If your server-side search is active, this might not match the current query
-          // but it's still ok to optimistically insert if you want:
           setPayments((prev) => (prev ? [newPayment, ...prev] : [newPayment]));
+          notify("success", "Payment created.");
         }}
+      />
+
+      <PasswordPromptModal
+        open={pwOpen}
+        onClose={() => {
+          setPwOpen(false);
+          setPendingAction(null);
+        }}
+        onConfirmed={proceedAfterPassword}
+        title="Security Check"
       />
 
       <ConfirmModal

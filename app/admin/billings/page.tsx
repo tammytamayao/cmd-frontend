@@ -28,6 +28,13 @@ import { CreateBillingModal } from "./components/CreateBillingModal";
 import { useConfirm } from "@/app/hooks/useConfirm";
 import { ConfirmModal } from "@/app/components/ConfirmModal";
 
+import { PasswordPromptModal } from "@/app/components/admin/PasswordPromptModal";
+
+type PendingAction =
+  | { type: "edit"; billingId: number }
+  | { type: "delete"; billing: AdminBilling }
+  | null;
+
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
   const { notify } = useNotification();
@@ -36,14 +43,11 @@ export default function AdminBillingsPage() {
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
 
-  // server-side search
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 350);
 
-  // table loading (prevents full-screen flicker)
   const [loading, setLoading] = useState(false);
 
-  // ---------- View details modal state ----------
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedBilling, setSelectedBilling] = useState<AdminBilling | null>(
     null
@@ -51,7 +55,6 @@ export default function AdminBillingsPage() {
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
 
-  // ---------- Edit modal state ----------
   const [editOpen, setEditOpen] = useState(false);
   const [editBilling, setEditBilling] = useState<AdminBilling | null>(null);
 
@@ -60,6 +63,9 @@ export default function AdminBillingsPage() {
 
   const router = useRouter();
   const confirmModal = useConfirm();
+
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
   const openBatch = () => {
     setAddChoiceOpen(false);
@@ -74,38 +80,6 @@ export default function AdminBillingsPage() {
   useEffect(() => {
     setPage(1);
   }, [search]);
-
-  const handleOpenEdit = async (id: number) => {
-    const t = getToken();
-    if (!t) {
-      const msg = "No token found. Please log in as staff.";
-      notify("error", msg);
-      return;
-    }
-
-    try {
-      const res = await fetchAdminBilling(id, t);
-      setEditBilling(res.data as AdminBilling);
-      setEditOpen(true);
-    } catch (e) {
-      const msg =
-        e instanceof Error ? e.message : "Failed to load payment for editing.";
-      notify("error", msg);
-    }
-  };
-
-  const handleCloseEdit = () => {
-    setEditOpen(false);
-    setEditBilling(null);
-  };
-
-  const handleBillingUpdated = (updated: AdminBilling) => {
-    setBillings((prev) =>
-      prev
-        ? prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
-        : prev
-    );
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -130,7 +104,7 @@ export default function AdminBillingsPage() {
         if (cancelled) return;
         const msg = e instanceof Error ? e.message : "Failed to load billings";
         setErr(msg);
-        setBillings([]); // show empty state
+        setBillings([]);
         setMeta(null);
       } finally {
         if (!cancelled) setLoading(false);
@@ -138,7 +112,6 @@ export default function AdminBillingsPage() {
     };
 
     run();
-
     return () => {
       cancelled = true;
     };
@@ -168,56 +141,99 @@ export default function AdminBillingsPage() {
     }
   };
 
-  const handleDeleteBilling = async (billing: AdminBilling) => {
-    const t = getToken();
-    if (!t) {
-      notify("error", "No token found. Please log in as staff.");
-      return;
-    }
-
-    const ok = await confirmModal.confirm({
-      title: "Delete billing?",
-      description: (
-        <div className="space-y-2">
-          <p>
-            You are about to delete billing for{" "}
-            <span className="font-semibold">
-              {billing.subscriber?.last_name}, {billing.subscriber?.first_name}
-            </span>
-            .
-          </p>
-          <p className="text-red-600 font-medium">
-            This action cannot be undone.
-          </p>
-        </div>
-      ),
-      confirmText: "Delete billing",
-      cancelText: "Cancel",
-      confirmTone: "danger",
-    });
-
-    if (!ok) return;
-
-    try {
-      await deleteAdminBilling(billing.id, t);
-
-      notify("success", "Billing deleted.");
-
-      setBillings((prev) =>
-        prev ? prev.filter((b) => b.id !== billing.id) : prev
-      );
-    } catch (e) {
-      notify(
-        "error",
-        e instanceof Error ? e.message : "Failed to delete billing."
-      );
-    }
-  };
-
   const handleCloseDetails = () => {
     setDetailsOpen(false);
     setSelectedBilling(null);
     setDetailsError(null);
+  };
+
+  const requestEdit = (b: AdminBilling) => {
+    setPendingAction({ type: "edit", billingId: b.id });
+    setPwOpen(true);
+  };
+
+  const requestDelete = (b: AdminBilling) => {
+    setPendingAction({ type: "delete", billing: b });
+    setPwOpen(true);
+  };
+
+  const proceedAfterPassword = async () => {
+    const t = getToken();
+    if (!t || !pendingAction) return;
+
+    if (pendingAction.type === "edit") {
+      try {
+        const res = await fetchAdminBilling(pendingAction.billingId, t);
+        setEditBilling(res.data as AdminBilling);
+        setEditOpen(true);
+      } catch (e) {
+        notify(
+          "error",
+          e instanceof Error ? e.message : "Failed to load billing for editing."
+        );
+      } finally {
+        setPendingAction(null);
+      }
+      return;
+    }
+
+    if (pendingAction.type === "delete") {
+      const billing = pendingAction.billing;
+      setPendingAction(null);
+
+      const ok = await confirmModal.confirm({
+        title: "Delete billing?",
+        description: (
+          <div className="space-y-2">
+            <p>
+              You are about to delete billing for{" "}
+              <span className="font-semibold">
+                {billing.subscriber?.last_name},{" "}
+                {billing.subscriber?.first_name}
+              </span>
+              .
+            </p>
+            <p className="text-red-600 font-medium">
+              This action cannot be undone.
+            </p>
+          </div>
+        ),
+        confirmText: "Delete billing",
+        cancelText: "Cancel",
+        confirmTone: "danger",
+      });
+
+      if (!ok) return;
+
+      try {
+        await deleteAdminBilling(billing.id, t);
+
+        setBillings((prev) =>
+          prev ? prev.filter((x) => x.id !== billing.id) : prev
+        );
+
+        notify("success", "Billing deleted.");
+      } catch (e) {
+        notify(
+          "error",
+          e instanceof Error ? e.message : "Failed to delete billing."
+        );
+      }
+    }
+  };
+
+  const handleCloseEdit = () => {
+    setEditOpen(false);
+    setEditBilling(null);
+  };
+
+  const handleBillingUpdated = (updated: AdminBilling) => {
+    setBillings((prev) =>
+      prev
+        ? prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
+        : prev
+    );
+    notify("success", "Billing updated.");
   };
 
   if (err && !billings) {
@@ -280,15 +296,14 @@ export default function AdminBillingsPage() {
               meta={hasRows ? meta : null}
               onPageChange={setPage}
               onRowClick={(b) => handleViewDetails(b.id)}
-              onEdit={(b) => handleOpenEdit(b.id)}
-              onDelete={handleDeleteBilling}
+              onEdit={(b) => requestEdit(b)} // ✅ gated
+              onDelete={(b) => requestDelete(b)} // ✅ gated
               today={today}
             />
           </AdminTableCard>
         </section>
       </main>
 
-      {/* 1) choose modal */}
       <BillingChoiceModal
         open={addChoiceOpen}
         onClose={() => setAddChoiceOpen(false)}
@@ -296,12 +311,12 @@ export default function AdminBillingsPage() {
         onBatch={openBatch}
       />
 
-      {/* 2) single create modal */}
       <CreateBillingModal
         open={createSingleOpen}
         onClose={() => setCreateSingleOpen(false)}
         onCreated={(newBilling: AdminBilling) => {
           setBillings((prev) => (prev ? [newBilling, ...prev] : [newBilling]));
+          notify("success", "Billing created.");
         }}
       />
 
@@ -318,6 +333,17 @@ export default function AdminBillingsPage() {
         onClose={handleCloseEdit}
         billing={editBilling as AdminBilling | null}
         onUpdated={handleBillingUpdated}
+      />
+
+      {/* ✅ Password Prompt first */}
+      <PasswordPromptModal
+        open={pwOpen}
+        onClose={() => {
+          setPwOpen(false);
+          setPendingAction(null);
+        }}
+        onConfirmed={proceedAfterPassword}
+        title="Security Check"
       />
 
       <ConfirmModal

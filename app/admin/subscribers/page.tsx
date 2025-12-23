@@ -24,6 +24,14 @@ import { useConfirm } from "@/app/hooks/useConfirm";
 import { useNotification } from "@/app/notification/NotificationProvider";
 import { ConfirmModal } from "@/app/components/ConfirmModal";
 
+// ✅ add this
+import { PasswordPromptModal } from "@/app/components/admin/PasswordPromptModal";
+
+type PendingAction =
+  | { type: "edit"; subscriber: AdminSubscriber }
+  | { type: "delete"; subscriber: AdminSubscriber }
+  | null;
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [subs, setSubs] = useState<AdminSubscriber[] | null>(null);
@@ -31,7 +39,6 @@ export default function AdminDashboardPage() {
   const [page, setPage] = useState(1);
   const [err, setErr] = useState<string | null>(null);
 
-  // server-side search
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 350);
 
@@ -45,7 +52,10 @@ export default function AdminDashboardPage() {
   const [viewLoading, setViewLoading] = useState(false);
   const [viewErr, setViewErr] = useState<string | null>(null);
 
-  // reset page when raw search changes
+  // ✅ Password modal state
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+
   useEffect(() => {
     setPage(1);
   }, [search]);
@@ -106,49 +116,78 @@ export default function AdminDashboardPage() {
       setViewLoading(false);
     }
   }
-  const handleDeleteSubscriber = async (s: AdminSubscriber) => {
+
+  // ✅ request edit (password first)
+  const requestEditSubscriber = (s: AdminSubscriber) => {
+    setPendingAction({ type: "edit", subscriber: s });
+    setPwOpen(true);
+  };
+
+  // ✅ request delete (password first)
+  const requestDeleteSubscriber = (s: AdminSubscriber) => {
+    setPendingAction({ type: "delete", subscriber: s });
+    setPwOpen(true);
+  };
+
+  // ✅ run action after password confirmed
+  const proceedAfterPassword = async () => {
     const t = getToken();
     if (!t) {
       notify("error", "No token found. Please log in as staff.");
+      setPendingAction(null);
+      return;
+    }
+    if (!pendingAction) return;
+
+    // EDIT
+    if (pendingAction.type === "edit") {
+      setEditing(pendingAction.subscriber);
+      setPendingAction(null);
       return;
     }
 
-    const ok = await confirmModal.confirm({
-      title: "Delete subscriber?",
-      description: (
-        <div className="space-y-2">
-          <p>
-            You are about to delete{" "}
-            <span className="font-semibold">
-              {s.last_name}, {s.first_name}
-            </span>
-            .
-          </p>
-          <p className="text-red-600 font-medium">
-            This action cannot be undone.
-          </p>
-        </div>
-      ),
-      confirmText: "Delete subscriber",
-      cancelText: "Cancel",
-      confirmTone: "danger",
-    });
+    // DELETE
+    if (pendingAction.type === "delete") {
+      const s = pendingAction.subscriber;
+      setPendingAction(null);
 
-    if (!ok) return;
+      const ok = await confirmModal.confirm({
+        title: "Delete subscriber?",
+        description: (
+          <div className="space-y-2">
+            <p>
+              You are about to delete{" "}
+              <span className="font-semibold">
+                {s.last_name}, {s.first_name}
+              </span>
+              .
+            </p>
+            <p className="text-red-600 font-medium">
+              This action cannot be undone.
+            </p>
+          </div>
+        ),
+        confirmText: "Delete subscriber",
+        cancelText: "Cancel",
+        confirmTone: "danger",
+      });
 
-    try {
-      await deleteAdminSubscriber(s.id, t);
+      if (!ok) return;
 
-      notify("success", "Subscriber deleted.");
-      setSubs((prev) => (prev ? prev.filter((x) => x.id !== s.id) : prev));
+      try {
+        await deleteAdminSubscriber(s.id, t);
 
-      setViewing((prev) => (prev?.id === s.id ? null : prev));
-      setEditing((prev) => (prev?.id === s.id ? null : prev));
-    } catch (e) {
-      notify(
-        "error",
-        e instanceof Error ? e.message : "Failed to delete subscriber."
-      );
+        notify("success", "Subscriber deleted.");
+
+        setSubs((prev) => (prev ? prev.filter((x) => x.id !== s.id) : prev));
+        setViewing((prev) => (prev?.id === s.id ? null : prev));
+        setEditing((prev) => (prev?.id === s.id ? null : prev));
+      } catch (e) {
+        notify(
+          "error",
+          e instanceof Error ? e.message : "Failed to delete subscriber."
+        );
+      }
     }
   };
 
@@ -208,8 +247,8 @@ export default function AdminDashboardPage() {
               meta={hasRows ? meta : null}
               onPageChange={setPage}
               onRowClick={openDetails}
-              onEdit={setEditing}
-              onDelete={handleDeleteSubscriber}
+              onEdit={requestEditSubscriber} // ✅ gated
+              onDelete={requestDeleteSubscriber} // ✅ gated
             />
           </AdminTableCard>
         </section>
@@ -236,9 +275,22 @@ export default function AdminDashboardPage() {
             );
 
             setViewing((prev) => (prev?.id === updated.id ? updated : prev));
+            notify("success", "Subscriber updated.");
           }}
         />
       </main>
+
+      {/* ✅ Password Prompt first */}
+      <PasswordPromptModal
+        open={pwOpen}
+        onClose={() => {
+          setPwOpen(false);
+          setPendingAction(null);
+        }}
+        onConfirmed={proceedAfterPassword}
+        title="Security Check"
+      />
+
       <ConfirmModal
         open={confirmModal.open}
         onClose={confirmModal.close}
