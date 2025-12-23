@@ -6,7 +6,11 @@ import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
 import { AdminHeader } from "@/app/components/admin/AdminHeader";
 
-import { fetchAllPayments, fetchAdminPayment } from "@/lib/api";
+import {
+  fetchAllPayments,
+  fetchAdminPayment,
+  deleteAdminPayment,
+} from "@/lib/api";
 import { PaymentDetailsModal } from "@/app/admin/payments/components/PaymentDetailsModal";
 import { EditPaymentModal } from "@/app/admin/payments/components/EditPaymentModal";
 import { CreatePaymentModal } from "@/app/admin/payments/components/CreatePaymentModal";
@@ -16,6 +20,8 @@ import { AdminPayment } from "@/lib/types";
 import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
 import { useDebounce } from "@/app/hooks/useDebounce";
 import { useNotification } from "@/app/notification/NotificationProvider";
+import { useConfirm } from "@/app/hooks/useConfirm";
+import { ConfirmModal } from "@/app/components/ConfirmModal";
 
 export default function AdminPaymentsPage() {
   const token = getToken();
@@ -43,6 +49,8 @@ export default function AdminPaymentsPage() {
   const [editPayment, setEditPayment] = useState<AdminPayment | null>(null);
 
   const [createOpen, setCreateOpen] = useState(false);
+
+  const confirmModal = useConfirm();
 
   useEffect(() => {
     setPage(1);
@@ -130,6 +138,49 @@ export default function AdminPaymentsPage() {
         ? prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
         : prev
     );
+    notify("success", "Payment updated.");
+  };
+
+  const handleDeletePayment = async (payment: AdminPayment) => {
+    if (!token) return;
+
+    const ok = await confirmModal.confirm({
+      title: "Delete payment?",
+      description: (
+        <div className="space-y-2">
+          <p>
+            You are about to delete this payment for{" "}
+            <span className="font-semibold">
+              {payment.subscriber?.last_name}, {payment.subscriber?.first_name}
+            </span>
+            .
+          </p>
+          <p className="text-red-600 font-medium">
+            This action cannot be undone.
+          </p>
+        </div>
+      ),
+      confirmText: "Delete payment",
+      cancelText: "Cancel",
+      confirmTone: "danger",
+    });
+
+    if (!ok) return;
+
+    try {
+      await deleteAdminPayment(payment.id, token);
+
+      // Optimistically remove from table
+      setPayments((prev) =>
+        prev ? prev.filter((p) => p.id !== payment.id) : prev
+      );
+      notify("success", "Payment deleted.");
+    } catch (e) {
+      notify(
+        "error",
+        e instanceof Error ? e.message : "Failed to delete payment."
+      );
+    }
   };
 
   if (err) {
@@ -191,6 +242,7 @@ export default function AdminPaymentsPage() {
               onPageChange={setPage}
               onRowClick={(p) => handleViewDetails(p.id)}
               onEdit={(p) => handleOpenEdit(p.id)}
+              onDelete={handleDeletePayment}
             />
           </AdminTableCard>
         </section>
@@ -219,6 +271,17 @@ export default function AdminPaymentsPage() {
           // but it's still ok to optimistically insert if you want:
           setPayments((prev) => (prev ? [newPayment, ...prev] : [newPayment]));
         }}
+      />
+
+      <ConfirmModal
+        open={confirmModal.open}
+        onClose={confirmModal.close}
+        title={confirmModal.options.title}
+        description={confirmModal.options.description}
+        confirmText={confirmModal.options.confirmText}
+        cancelText={confirmModal.options.cancelText}
+        confirmTone={confirmModal.options.confirmTone}
+        onConfirm={confirmModal.accept}
       />
     </div>
   );

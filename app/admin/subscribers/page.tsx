@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
-import { fetchAllSubscribers, fetchAdminSubscriber } from "@/lib/api";
+import {
+  fetchAllSubscribers,
+  fetchAdminSubscriber,
+  deleteAdminSubscriber,
+} from "@/lib/api";
 import { AdminSubscriber, Stats } from "@/lib/types";
 import { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminSidebar } from "@/app/components/admin/AdminSidebar";
@@ -16,6 +20,9 @@ import { SubscriberTable } from "@/app/admin/subscribers/components/SubscribersT
 
 import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
 import { useDebounce } from "@/app/hooks/useDebounce";
+import { useConfirm } from "@/app/hooks/useConfirm";
+import { useNotification } from "@/app/notification/NotificationProvider";
+import { ConfirmModal } from "@/app/components/ConfirmModal";
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -29,6 +36,8 @@ export default function AdminDashboardPage() {
   const debouncedSearch = useDebounce(search, 350);
 
   const router = useRouter();
+  const { notify } = useNotification();
+  const confirmModal = useConfirm();
 
   const [editing, setEditing] = useState<AdminSubscriber | null>(null);
 
@@ -97,6 +106,51 @@ export default function AdminDashboardPage() {
       setViewLoading(false);
     }
   }
+  const handleDeleteSubscriber = async (s: AdminSubscriber) => {
+    const t = getToken();
+    if (!t) {
+      notify("error", "No token found. Please log in as staff.");
+      return;
+    }
+
+    const ok = await confirmModal.confirm({
+      title: "Delete subscriber?",
+      description: (
+        <div className="space-y-2">
+          <p>
+            You are about to delete{" "}
+            <span className="font-semibold">
+              {s.last_name}, {s.first_name}
+            </span>
+            .
+          </p>
+          <p className="text-red-600 font-medium">
+            This action cannot be undone.
+          </p>
+        </div>
+      ),
+      confirmText: "Delete subscriber",
+      cancelText: "Cancel",
+      confirmTone: "danger",
+    });
+
+    if (!ok) return;
+
+    try {
+      await deleteAdminSubscriber(s.id, t);
+
+      notify("success", "Subscriber deleted.");
+      setSubs((prev) => (prev ? prev.filter((x) => x.id !== s.id) : prev));
+
+      setViewing((prev) => (prev?.id === s.id ? null : prev));
+      setEditing((prev) => (prev?.id === s.id ? null : prev));
+    } catch (e) {
+      notify(
+        "error",
+        e instanceof Error ? e.message : "Failed to delete subscriber."
+      );
+    }
+  };
 
   if (err) {
     return (
@@ -155,6 +209,7 @@ export default function AdminDashboardPage() {
               onPageChange={setPage}
               onRowClick={openDetails}
               onEdit={setEditing}
+              onDelete={handleDeleteSubscriber}
             />
           </AdminTableCard>
         </section>
@@ -184,6 +239,16 @@ export default function AdminDashboardPage() {
           }}
         />
       </main>
+      <ConfirmModal
+        open={confirmModal.open}
+        onClose={confirmModal.close}
+        title={confirmModal.options.title}
+        description={confirmModal.options.description}
+        confirmText={confirmModal.options.confirmText}
+        cancelText={confirmModal.options.cancelText}
+        confirmTone={confirmModal.options.confirmTone}
+        onConfirm={confirmModal.accept}
+      />
     </div>
   );
 }

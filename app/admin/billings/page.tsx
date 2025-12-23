@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { getToken } from "@/lib/auth";
-import { fetchAdminBillings, fetchAdminBilling } from "@/lib/api";
+import {
+  fetchAdminBillings,
+  fetchAdminBilling,
+  deleteAdminBilling,
+} from "@/lib/api";
 
 import type { AdminBilling } from "@/lib/types";
 import { PaginationMeta } from "@/app/components/admin/Pagination";
@@ -21,6 +25,8 @@ import { useDebounce } from "@/app/hooks/useDebounce";
 import { useNotification } from "@/app/notification/NotificationProvider";
 import { BillingChoiceModal } from "./components/BillingChoiceModal";
 import { CreateBillingModal } from "./components/CreateBillingModal";
+import { useConfirm } from "@/app/hooks/useConfirm";
+import { ConfirmModal } from "@/app/components/ConfirmModal";
 
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
@@ -53,6 +59,7 @@ export default function AdminBillingsPage() {
   const [createSingleOpen, setCreateSingleOpen] = useState(false);
 
   const router = useRouter();
+  const confirmModal = useConfirm();
 
   const openBatch = () => {
     setAddChoiceOpen(false);
@@ -161,6 +168,52 @@ export default function AdminBillingsPage() {
     }
   };
 
+  const handleDeleteBilling = async (billing: AdminBilling) => {
+    const t = getToken();
+    if (!t) {
+      notify("error", "No token found. Please log in as staff.");
+      return;
+    }
+
+    const ok = await confirmModal.confirm({
+      title: "Delete billing?",
+      description: (
+        <div className="space-y-2">
+          <p>
+            You are about to delete billing for{" "}
+            <span className="font-semibold">
+              {billing.subscriber?.last_name}, {billing.subscriber?.first_name}
+            </span>
+            .
+          </p>
+          <p className="text-red-600 font-medium">
+            This action cannot be undone.
+          </p>
+        </div>
+      ),
+      confirmText: "Delete billing",
+      cancelText: "Cancel",
+      confirmTone: "danger",
+    });
+
+    if (!ok) return;
+
+    try {
+      await deleteAdminBilling(billing.id, t);
+
+      notify("success", "Billing deleted.");
+
+      setBillings((prev) =>
+        prev ? prev.filter((b) => b.id !== billing.id) : prev
+      );
+    } catch (e) {
+      notify(
+        "error",
+        e instanceof Error ? e.message : "Failed to delete billing."
+      );
+    }
+  };
+
   const handleCloseDetails = () => {
     setDetailsOpen(false);
     setSelectedBilling(null);
@@ -228,6 +281,7 @@ export default function AdminBillingsPage() {
               onPageChange={setPage}
               onRowClick={(b) => handleViewDetails(b.id)}
               onEdit={(b) => handleOpenEdit(b.id)}
+              onDelete={handleDeleteBilling}
               today={today}
             />
           </AdminTableCard>
@@ -264,6 +318,17 @@ export default function AdminBillingsPage() {
         onClose={handleCloseEdit}
         billing={editBilling as AdminBilling | null}
         onUpdated={handleBillingUpdated}
+      />
+
+      <ConfirmModal
+        open={confirmModal.open}
+        onClose={confirmModal.close}
+        title={confirmModal.options.title}
+        description={confirmModal.options.description}
+        confirmText={confirmModal.options.confirmText}
+        cancelText={confirmModal.options.cancelText}
+        confirmTone={confirmModal.options.confirmTone}
+        onConfirm={confirmModal.accept}
       />
     </div>
   );
