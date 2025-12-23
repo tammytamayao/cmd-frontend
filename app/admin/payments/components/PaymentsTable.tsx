@@ -2,6 +2,7 @@
 import { AdminDataTable } from "@/app/components/admin/AdminDataTable";
 import { formatDate, statusBadgeClasses, titleCase } from "@/lib/helpers";
 import { PaymentTableProps } from "@/lib/types";
+import { Pencil, Trash2 } from "lucide-react";
 
 export function PaymentsTable({
   payments,
@@ -9,6 +10,7 @@ export function PaymentsTable({
   onPageChange,
   onRowClick,
   onEdit,
+  onDelete,
 }: PaymentTableProps) {
   return (
     <AdminDataTable
@@ -19,7 +21,7 @@ export function PaymentsTable({
         { key: "billing_period", label: "BILLING PERIOD" },
         { key: "payment_method", label: "MODE OF PAYMENT" },
         { key: "payment_status", label: "PAYMENT STATUS" },
-        { key: "actions", label: "ACTIONS", align: "right" },
+        { key: "actions", label: "", align: "right" },
       ]}
       rows={payments}
       rowKey={(p) => p.id}
@@ -65,16 +67,32 @@ export function PaymentsTable({
             </span>
           </td>
 
-          <td className="px-4 py-3 align-middle text-right space-x-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(p);
-              }}
-              className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
-            >
-              Edit
-            </button>
+          <td className="px-4 py-3 align-middle text-right">
+            <div className="inline-flex items-center gap-2">
+              {/* Edit */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(p);
+                }}
+                title="Edit payment"
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 transition"
+              >
+                <Pencil size={16} />
+              </button>
+
+              {/* Delete */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(p);
+                }}
+                title="Delete payment"
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1 transition"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </td>
         </>
       )}

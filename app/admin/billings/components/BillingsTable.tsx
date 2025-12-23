@@ -8,6 +8,7 @@ import {
   normalizeBillingStatus,
 } from "@/lib/helpers";
 import { AdminDataTable } from "@/app/components/admin/AdminDataTable";
+import { Pencil, Trash2 } from "lucide-react";
 
 export function BillingsTable({
   billings,
@@ -15,6 +16,7 @@ export function BillingsTable({
   onPageChange,
   onRowClick,
   onEdit,
+  onDelete,
   today = new Date(),
 }: BillingTableProps) {
   return (
@@ -85,16 +87,32 @@ export function BillingsTable({
               )}
             </td>
 
-            <td className="px-4 py-3 align-middle text-right space-x-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(b);
-                }}
-                className="inline-flex items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
-              >
-                Edit
-              </button>
+            <td className="px-4 py-3 align-middle text-right">
+              <div className="inline-flex items-center gap-2">
+                {/* Edit */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(b);
+                  }}
+                  title="Edit billing"
+                  className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 transition"
+                >
+                  <Pencil size={16} />
+                </button>
+
+                {/* Delete */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(b);
+                  }}
+                  title="Delete billing"
+                  className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1 transition"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </td>
           </>
         );
