@@ -4,6 +4,7 @@ import { formatDate } from "@/lib/helpers";
 import type { AdminSubscriber } from "@/lib/types";
 import type { PaginationMeta } from "@/app/components/admin/Pagination";
 import { AdminDataTable } from "@/app/components/admin/AdminDataTable";
+import { Pencil, Trash2 } from "lucide-react";
 
 type SubscriberTableProps = {
   subscribers: AdminSubscriber[];
@@ -11,6 +12,7 @@ type SubscriberTableProps = {
   onPageChange: (page: number) => void;
   onRowClick: (subscriber: AdminSubscriber) => void;
   onEdit: (subscriber: AdminSubscriber) => void;
+  onDelete: (subscriber: AdminSubscriber) => void;
 };
 
 export function SubscriberTable({
@@ -19,6 +21,7 @@ export function SubscriberTable({
   onPageChange,
   onRowClick,
   onEdit,
+  onDelete,
 }: SubscriberTableProps) {
   return (
     <AdminDataTable
@@ -55,17 +58,34 @@ export function SubscriberTable({
           <td className="px-4 py-3 text-sm text-gray-900">
             Up to {s.package_speed ?? 0} Mbps
           </td>
-          <td className="px-4 py-3 text-sm text-right">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(s);
-              }}
-              className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Edit
-            </button>
+          <td className="px-4 py-3 align-middle text-right">
+            <div className="inline-flex items-center gap-2">
+              {/* Edit */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(s);
+                }}
+                title="Edit subscriber"
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 transition"
+              >
+                <Pencil size={16} />
+              </button>
+
+              {/* Delete */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(s);
+                }}
+                title="Delete subscriber"
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-1 transition"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
           </td>
         </>
       )}
