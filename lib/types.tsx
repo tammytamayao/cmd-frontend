@@ -447,3 +447,10 @@ export type BillingConfigurationProps = {
   dueDate: string;
   onDueDateChange: (v: string) => void;
 };
+
+export type PasswordPromptModalProps = {
+  open: boolean;
+  onClose: () => void;
+  onConfirmed: () => void;
+  title?: string;
+};
