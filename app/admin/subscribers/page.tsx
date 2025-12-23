@@ -148,8 +148,6 @@ export default function AdminDashboardPage() {
                 ? "Try searching by name, serial number, or ID."
                 : "Add your first subscriber to get started."
             }
-            emptyActionLabel="Add Subscriber"
-            onEmptyAction={() => router.push("/admin/subscribers/new")}
           >
             <SubscriberTable
               subscribers={subs ?? []}
