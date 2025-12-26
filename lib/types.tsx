@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 export type AdminSubscriber = {
   id: number;
   serial_number: string | null;
@@ -453,4 +455,18 @@ export type PasswordPromptModalProps = {
   onClose: () => void;
   onConfirmed: () => void;
   title?: string;
+};
+
+export type AdminConfirmModalProps = {
+  open: boolean;
+  onClose: () => void;
+
+  title?: ReactNode;
+  description?: ReactNode;
+  confirmText?: string;
+  cancelText?: string;
+  confirmTone?: "primary" | "danger";
+  loading?: boolean;
+
+  onConfirm: () => void;
 };

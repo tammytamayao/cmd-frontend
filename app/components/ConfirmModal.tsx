@@ -1,24 +1,6 @@
 "use client";
-
-import type { ReactNode } from "react";
 import { AdminModal } from "@/app/components/admin/AdminModal";
-
-type AdminConfirmModalProps = {
-  open: boolean;
-  onClose: () => void;
-
-  title?: ReactNode;
-  description?: ReactNode;
-
-  confirmText?: string;
-  cancelText?: string;
-
-  confirmTone?: "primary" | "danger";
-
-  loading?: boolean;
-
-  onConfirm: () => void;
-};
+import { AdminConfirmModalProps } from "@/lib/types";
 
 export function ConfirmModal({
   open,

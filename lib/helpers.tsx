@@ -170,3 +170,13 @@ export function computePackagePlanLabel(s: AdminSubscriber | null): string {
 export function formatInt(n: number) {
   return n.toLocaleString("en-PH");
 }
+
+export function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+export function expectedPasswordForNow(now = new Date()) {
+  const mm = pad2(now.getMonth() + 1);
+  const yyyy = String(now.getFullYear());
+  return `cmdcableunlifibermax${mm}${yyyy}`;
+}

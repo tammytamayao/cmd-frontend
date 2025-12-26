@@ -20,7 +20,9 @@ export function IdentityField({
   if (isSubscriber) {
     return (
       <div>
-        <label className="block text-sm font-medium mb-1">Serial Number</label>
+        <label className="block text-sm font-medium mb-1">
+          Subscriber Number
+        </label>
         <input
           inputMode="text"
           autoComplete="off"

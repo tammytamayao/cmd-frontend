@@ -329,7 +329,7 @@ export function SubscriberPlanInfoEdit<T extends SubscriberFormBase>({
           />
         </Field>
 
-        <Field label="STB">
+        <Field label="STB Number">
           <input
             required
             value={form.stb}
@@ -339,7 +339,7 @@ export function SubscriberPlanInfoEdit<T extends SubscriberFormBase>({
           />
         </Field>
 
-        <Field label="CAS">
+        <Field label="CAS ID">
           <input
             required
             value={form.cas}

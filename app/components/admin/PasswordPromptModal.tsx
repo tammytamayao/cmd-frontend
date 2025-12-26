@@ -3,16 +3,7 @@
 import { useMemo, useState } from "react";
 import { AdminModal } from "@/app/components/admin/AdminModal";
 import { PasswordPromptModalProps } from "@/lib/types";
-
-function pad2(n: number) {
-  return String(n).padStart(2, "0");
-}
-
-function expectedPasswordForNow(now = new Date()) {
-  const mm = pad2(now.getMonth() + 1);
-  const yyyy = String(now.getFullYear());
-  return `cmdcableunlifibermax${mm}${yyyy}`;
-}
+import { expectedPasswordForNow } from "@/lib/helpers";
 
 function PasswordPromptModalInner({
   onClose,
