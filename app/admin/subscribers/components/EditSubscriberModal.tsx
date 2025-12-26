@@ -11,6 +11,30 @@ import {
 } from "@/app/admin/subscribers/components/SubscriberSections";
 import { toEditSubscriberForm } from "@/lib/helpers";
 
+const EMPTY_FORM: EditSubscriberForm = {
+  last_name: "",
+  first_name: "",
+  phone_number: "",
+  alternative_phone: "",
+  zone: "",
+
+  collector: "",
+  date_installed: "",
+  serial_number: "",
+  tvconnect: false,
+
+  package: "",
+  plan: "",
+  brate: "",
+  package_speed: "",
+
+  mc_address: "",
+  stb: "",
+  cas: "",
+
+  requires_password_change: false,
+};
+
 export function EditSubscriberModal({
   open,
   subscriber,
@@ -22,13 +46,13 @@ export function EditSubscriberModal({
   onClose: () => void;
   onUpdated: (updated: AdminSubscriber) => void;
 }) {
-  const [form, setForm] = useState<EditSubscriberForm | null>(null);
+  const [form, setForm] = useState<EditSubscriberForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open || !subscriber) {
-      setForm(null);
+      setForm(EMPTY_FORM);
       setErr(null);
       setSaving(false);
       return;
@@ -39,7 +63,6 @@ export function EditSubscriberModal({
   }, [open, subscriber, subscriber?.id]);
 
   const canSave = useMemo(() => {
-    if (!form) return false;
     return (
       form.last_name.trim() !== "" &&
       form.first_name.trim() !== "" &&
@@ -59,7 +82,7 @@ export function EditSubscriberModal({
   }, [form]);
 
   async function save() {
-    if (!subscriber || !form) return;
+    if (!subscriber) return;
 
     setErr(null);
 
@@ -127,7 +150,7 @@ export function EditSubscriberModal({
           <button
             type="button"
             onClick={save}
-            disabled={!canSave || saving || !subscriber || !form}
+            disabled={!canSave || saving || !subscriber}
             className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save changes"}
@@ -141,7 +164,7 @@ export function EditSubscriberModal({
         </div>
       )}
 
-      {!subscriber || !form ? (
+      {!subscriber ? (
         <div className="text-center text-gray-500 py-6">
           No subscriber selected.
         </div>
