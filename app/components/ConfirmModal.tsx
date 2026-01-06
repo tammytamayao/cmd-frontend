@@ -16,7 +16,7 @@ export function ConfirmModal({
   const confirmBtnClass =
     confirmTone === "danger"
       ? "bg-red-600 hover:bg-red-700 focus-visible:ring-red-500"
-      : "bg-indigo-600 hover:bg-indigo-700 focus-visible:ring-indigo-500";
+      : "bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500";
 
   return (
     <AdminModal

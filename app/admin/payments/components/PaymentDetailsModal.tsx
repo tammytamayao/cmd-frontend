@@ -38,7 +38,7 @@ export function PaymentDetailsModal({
       footer={
         <button
           onClick={onClose}
-          className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+          className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
         >
           Close
         </button>
@@ -139,7 +139,7 @@ export function PaymentDetailsModal({
                   href={payment.receipt_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center text-indigo-600 hover:text-indigo-700 text-sm font-medium hover:underline"
+                  className="inline-flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium hover:underline"
                 >
                   Open receipt
                 </a>

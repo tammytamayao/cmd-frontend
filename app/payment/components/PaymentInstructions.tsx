@@ -95,7 +95,7 @@ export function PaymentInstructions({
 
             <ol className="mt-4 space-y-3 text-sm text-gray-800">
               <li className="flex gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold">
                   1
                 </span>
                 <span>
@@ -104,7 +104,7 @@ export function PaymentInstructions({
               </li>
 
               <li className="flex gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold">
                   2
                 </span>
                 <span>
@@ -113,7 +113,7 @@ export function PaymentInstructions({
               </li>
 
               <li className="flex gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold">
                   3
                 </span>
                 <span>
@@ -122,7 +122,7 @@ export function PaymentInstructions({
               </li>
 
               <li className="flex gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold">
                   4
                 </span>
                 <span>
@@ -131,7 +131,7 @@ export function PaymentInstructions({
               </li>
 
               <li className="flex gap-3">
-                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 font-semibold">
+                <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold">
                   5
                 </span>
                 <span>

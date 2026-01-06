@@ -68,7 +68,7 @@ function BillingsPage() {
 
           <button
             onClick={handleMakePayment}
-            className="mt-5 sm:mt-0 h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-medium"
+            className="mt-5 sm:mt-0 h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium"
           >
             Make a Payment
           </button>

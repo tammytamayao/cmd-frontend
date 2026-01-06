@@ -17,7 +17,7 @@ export function ModeToggle({
         type="button"
         onClick={() => onChange("subscriber")}
         className={`flex-1 py-2 rounded-full transition ${
-          isSubscriber ? "bg-white shadow-sm text-indigo-600" : "text-gray-500"
+          isSubscriber ? "bg-white shadow-sm text-red-600" : "text-gray-500"
         }`}
       >
         Subscriber
@@ -26,7 +26,7 @@ export function ModeToggle({
         type="button"
         onClick={() => onChange("admin")}
         className={`flex-1 py-2 rounded-full transition ${
-          !isSubscriber ? "bg-white shadow-sm text-indigo-600" : "text-gray-500"
+          !isSubscriber ? "bg-white shadow-sm text-red-600" : "text-gray-500"
         }`}
       >
         Staff / Admin

@@ -36,7 +36,7 @@ export function BillingAdjustmentCard({
               value={adjustmentNotes}
               onChange={(e) => onAdjustmentNotesChange(e.target.value)}
               placeholder="e.g. Seasonal Discount, Installation Fee"
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -50,7 +50,7 @@ export function BillingAdjustmentCard({
               value={adjAmount}
               onChange={(e) => onAdjAmountChange(e.target.value)}
               placeholder="e.g. 500 or -100"
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
@@ -58,7 +58,7 @@ export function BillingAdjustmentCard({
             <button
               type="button"
               onClick={onAddAdjustment}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-transparent px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors mt-1"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-transparent px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors mt-1"
             >
               Add
             </button>

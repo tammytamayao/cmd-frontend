@@ -39,7 +39,7 @@ export function SubscriberTable({
       onRowClick={onRowClick}
       renderRow={(s) => (
         <>
-          <td className="px-4 py-3 text-xs text-indigo-600 font-medium">
+          <td className="px-4 py-3 text-xs text-blue-600 font-medium">
             {s.serial_number || `SUB-${String(s.id).padStart(5, "0")}`}
           </td>
           <td className="px-4 py-3 text-sm text-gray-900">
@@ -68,7 +68,7 @@ export function SubscriberTable({
                   onEdit(s);
                 }}
                 title="Edit subscriber"
-                className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 transition"
+                className="inline-flex items-center justify-center rounded-md p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 transition"
               >
                 <Pencil size={16} />
               </button>

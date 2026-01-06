@@ -14,7 +14,7 @@ export function AdminSidebar({ active }: AdminSidebarProps) {
     [
       "flex w-full items-center gap-2 px-3 py-2 rounded-lg text-sm",
       isActive
-        ? "bg-indigo-50 text-indigo-700 font-medium"
+        ? "bg-blue-50 text-blue-700 font-medium"
         : "text-gray-600 hover:bg-gray-50",
     ].join(" ");
 
@@ -28,7 +28,7 @@ export function AdminSidebar({ active }: AdminSidebarProps) {
   return (
     <aside className="w-64 border-r border-gray-200 bg-white flex flex-col">
       <div className="flex items-center gap-3 px-5 py-6 border-b border-gray-100">
-        <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-indigo-500 to-sky-400 flex items-center justify-center text-white font-semibold">
+        <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-500 to-sky-400 flex items-center justify-center text-white font-semibold">
           A
         </div>
         <div>

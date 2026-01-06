@@ -53,7 +53,7 @@ export function SelectDropdown<T extends string | number>({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       >
         <span className={value == null ? "text-gray-400" : ""}>
           {currentLabel}
@@ -102,7 +102,7 @@ export function SelectDropdown<T extends string | number>({
                 }}
                 className={`flex w-full items-center px-3 py-1.5 text-left ${
                   selected
-                    ? "bg-indigo-50 text-indigo-700"
+                    ? "bg-blue-50 text-blue-700"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
               >

@@ -32,7 +32,7 @@ export function BillingConfigurationCard({
               type="date"
               value={billingStart}
               onChange={(e) => onBillingStartChange(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <p className="mt-1 text-[11px] text-gray-400">
               Start date of the billing coverage period.
@@ -48,7 +48,7 @@ export function BillingConfigurationCard({
               value={billingEnd}
               min={billingStart || undefined}
               onChange={(e) => onBillingEndChange(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <p className="mt-1 text-[11px] text-gray-400">
               End date of the billing coverage period.
@@ -64,7 +64,7 @@ export function BillingConfigurationCard({
               value={dueDate}
               min={billingEnd || billingStart || undefined}
               onChange={(e) => onDueDateChange(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-xs text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
             <p className="mt-1 text-[11px] text-gray-400">
               The date subscribers are expected to pay.

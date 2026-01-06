@@ -36,7 +36,7 @@ export function ReceiptUpload({
         className="mt-2 grid place-items-center h-44 rounded-lg border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer"
       >
         <div className="flex flex-col items-center gap-2 text-center">
-          <div className="h-10 w-10 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center">
+          <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 grid place-items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

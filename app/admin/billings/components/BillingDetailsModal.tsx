@@ -63,7 +63,7 @@ export function BillingDetailsModal({
       footer={
         <button
           onClick={onClose}
-          className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+          className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
         >
           Close
         </button>
@@ -90,7 +90,7 @@ export function BillingDetailsModal({
             <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
               <div>
                 <dt className="text-[11px] text-gray-400">Subscriber ID</dt>
-                <dd className="font-medium text-indigo-600">{subscriberId}</dd>
+                <dd className="font-medium text-blue-600">{subscriberId}</dd>
               </div>
               <div>
                 <dt className="text-[11px] text-gray-400">Subscriber Name</dt>

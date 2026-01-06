@@ -265,7 +265,7 @@ export function CreatePaymentModal({
             type="submit"
             form="create-payment-form"
             disabled={saveDisabled}
-            className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? "Creating..." : "Create payment"}
           </button>
@@ -345,7 +345,7 @@ export function CreatePaymentModal({
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
@@ -387,7 +387,7 @@ export function CreatePaymentModal({
             type="text"
             value={referenceNumber}
             onChange={(e) => setReferenceNumber(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="e.g. REF-12345678"
           />
         </div>
@@ -401,7 +401,7 @@ export function CreatePaymentModal({
             type="text"
             value={invoiceNumber}
             onChange={(e) => setInvoiceNumber(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="e.g. INV-2025-0012"
           />
         </div>
@@ -475,7 +475,7 @@ export function CreatePaymentModal({
             className={`group grid place-items-center rounded-xl border border-dashed px-4 py-5 transition-colors cursor-pointer
               ${
                 receiptFile
-                  ? "border-indigo-300 bg-indigo-50/40"
+                  ? "border-blue-300 bg-blue-50/40"
                   : "border-gray-300 bg-gray-50 hover:bg-gray-100"
               }`}
           >
@@ -484,7 +484,7 @@ export function CreatePaymentModal({
                 className={`h-10 w-10 rounded-full grid place-items-center transition-colors
                   ${
                     receiptFile
-                      ? "bg-indigo-100 text-indigo-700"
+                      ? "bg-blue-100 text-blue-700"
                       : "bg-gray-200 text-gray-600 group-hover:bg-gray-300"
                   }`}
               >

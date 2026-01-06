@@ -45,7 +45,7 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
 
             <button
               onClick={() => onViewPayment(p.id)}
-              className="mt-3 inline-flex items-center rounded-lg border border-indigo-500 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-white hover:bg-indigo-50 hover:border-indigo-600 active:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+              className="mt-3 inline-flex items-center rounded-lg border border-blue-500 px-3 py-1.5 text-xs font-medium text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-600 active:bg-blue-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
             >
               View details
             </button>
@@ -80,7 +80,7 @@ export function PaymentsTab({ payments, onViewPayment }: PaymentsTabProps) {
                 <td>
                   <button
                     onClick={() => onViewPayment(p.id)}
-                    className="inline-flex items-center rounded-lg border border-indigo-500 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-white hover:bg-indigo-50 hover:border-indigo-600 active:bg-indigo-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1"
+                    className="inline-flex items-center rounded-lg border border-blue-500 px-3 py-1.5 text-xs font-medium text-blue-600 bg-white hover:bg-blue-50 hover:border-blue-600 active:bg-blue-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1"
                   >
                     View details
                   </button>

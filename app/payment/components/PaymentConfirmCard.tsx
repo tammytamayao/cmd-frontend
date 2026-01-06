@@ -50,7 +50,7 @@ export function PaymentConfirmCard({
         <button
           onClick={onSubmit}
           disabled={submitDisabled}
-          className="mt-4 w-full h-12 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="mt-4 w-full h-12 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {submitting ? "Submitting..." : "Submit Payment"}
         </button>

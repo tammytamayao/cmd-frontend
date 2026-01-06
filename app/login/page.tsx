@@ -9,6 +9,7 @@ import { IdentityField } from "@/app/login/components/IdentityField";
 import { PasswordField } from "@/app/login/components/PasswordField";
 import { normalizeError, validate } from "@/lib/helpers";
 import { LoginMode } from "@/lib/types";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -70,7 +71,15 @@ export default function LoginPage() {
   return (
     <div className="min-h-[100dvh] w-full bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-        <h1 className="text-2xl font-bold text-center mb-6">CMD Login</h1>
+        <div className="flex justify-center mb-6">
+          <Image
+            src="/logo.jpg"
+            alt="CMD Logo"
+            width={160}
+            height={60}
+            priority
+          />
+        </div>
 
         <ModeToggle mode={mode} onChange={setMode} />
 
@@ -95,7 +104,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full h-11 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-medium transition"
+            className="w-full h-11 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-medium transition"
           >
             {loading
               ? isSubscriber

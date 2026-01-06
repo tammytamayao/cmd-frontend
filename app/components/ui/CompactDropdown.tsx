@@ -50,7 +50,7 @@ export default function CompactDropdown<T extends string | number>({
         className={`w-full inline-flex items-center justify-between h-10 rounded-lg border px-3 text-sm
           ${
             hasOptions
-              ? "border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              ? "border-gray-300 bg-white text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
               : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
           }
         `}
@@ -95,7 +95,7 @@ export default function CompactDropdown<T extends string | number>({
                     }}
                     className={`w-full text-left px-3 py-1.5 text-sm ${
                       active
-                        ? "bg-indigo-50 text-indigo-700"
+                        ? "bg-blue-50 text-blue-700"
                         : "text-gray-800 hover:bg-gray-50"
                     }`}
                   >

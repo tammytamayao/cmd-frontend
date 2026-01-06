@@ -29,7 +29,7 @@ export function IdentityField({
           placeholder="e.g. 105959-210"
           value={serialNumber}
           onChange={(e) => onSerialChange(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
         />
       </div>
     );
@@ -44,7 +44,7 @@ export function IdentityField({
         placeholder="you@company.com"
         value={email}
         onChange={(e) => onEmailChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500"
+        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500"
       />
     </div>
   );

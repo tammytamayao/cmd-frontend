@@ -199,7 +199,7 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
             type="submit"
             form="create-billing-form"
             disabled={saveDisabled}
-            className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? "Creating..." : "Create billing"}
           </button>
@@ -253,7 +253,7 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -266,7 +266,7 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
               value={endDate}
               min={startDate || undefined}
               onChange={(e) => setEndDate(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
@@ -282,7 +282,7 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
               value={dueDate}
               min={endDate || startDate || undefined}
               onChange={(e) => setDueDate(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
@@ -305,7 +305,7 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             placeholder="e.g. 1500.00"
           />
         </div>

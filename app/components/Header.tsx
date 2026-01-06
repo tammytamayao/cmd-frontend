@@ -29,17 +29,17 @@ export default function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden sm:flex items-center gap-6 text-sm">
           <a
-            className="font-medium text-gray-900 hover:text-indigo-600"
+            className="font-medium text-gray-900 hover:text-blue-600"
             href="/dashboard"
           >
             Dashboard
           </a>
 
-          <a className="text-gray-600 hover:text-indigo-600" href="/billing">
+          <a className="text-gray-600 hover:text-blue-600" href="/billing">
             Bills & Payments
           </a>
 
-          <a className="text-gray-600 hover:text-indigo-600" href="/support">
+          <a className="text-gray-600 hover:text-blue-600" href="/support">
             Support
           </a>
 

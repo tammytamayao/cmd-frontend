@@ -30,7 +30,7 @@ export function YearDropdown({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={label}
-        className="inline-flex items-center gap-2 h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="inline-flex items-center gap-2 h-9 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         onClick={() => setOpen((o) => !o)}
       >
         {value}
@@ -66,7 +66,7 @@ export function YearDropdown({
                     }}
                     className={`w-full text-left px-3 py-1 text-sm ${
                       active
-                        ? "bg-indigo-50 text-indigo-700"
+                        ? "bg-blue-50 text-blue-700"
                         : "text-gray-800 hover:bg-gray-50"
                     }`}
                   >

@@ -67,7 +67,7 @@ export function AdminDataTable<T>({
               className={[
                 zebra ? (idx % 2 === 0 ? "bg-white" : "bg-gray-50/60") : "",
                 onRowClick
-                  ? "cursor-pointer hover:bg-indigo-50/40 transition-colors"
+                  ? "cursor-pointer hover:bg-blue-50/40 transition-colors"
                   : "",
               ].join(" ")}
             >

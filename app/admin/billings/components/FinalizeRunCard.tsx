@@ -13,7 +13,7 @@ export function FinalizeRunCard({ submitting, onCancel }: FinalizeRunProps) {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {submitting
             ? "Processing Batch Billing..."

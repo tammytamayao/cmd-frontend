@@ -151,7 +151,7 @@ export function EditSubscriberModal({
             type="button"
             onClick={save}
             disabled={!canSave || saving || !subscriber}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60"
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save changes"}
           </button>
