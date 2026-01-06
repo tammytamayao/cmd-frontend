@@ -178,5 +178,5 @@ export function pad2(n: number) {
 export function expectedPasswordForNow(now = new Date()) {
   const mm = pad2(now.getMonth() + 1);
   const yyyy = String(now.getFullYear());
-  return `cmdcableunlifibermax${mm}${yyyy}`;
+  return `${mm}${yyyy}`;
 }
