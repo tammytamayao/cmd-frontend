@@ -24,7 +24,7 @@ export default function SupportPage() {
                 📞 Customer Hotline
               </h3>
               <p className="text-gray-700 mt-1">
-                Call us at: <b>0999 123 4567</b>
+                Call us at: <b>0928 735 9757 / 0917 869 4611</b>
               </p>
             </div>
 
@@ -33,7 +33,7 @@ export default function SupportPage() {
                 ✉️ Email Support
               </h3>
               <p className="text-gray-700 mt-1">
-                Send us an email at: <b>support@cmdunlifibermax.com</b>
+                Send us an email at: <b>support@cmdcable.com</b>
               </p>
             </div>
 
@@ -42,7 +42,7 @@ export default function SupportPage() {
                 🕒 Operating Hours
               </h3>
               <p className="text-gray-700 mt-1">
-                Monday – Saturday: <b>8:00 AM – 6:00 PM</b>
+                Monday – Saturday: <b>8:00 AM – 5:00 PM</b>
               </p>
             </div>
           </div>
