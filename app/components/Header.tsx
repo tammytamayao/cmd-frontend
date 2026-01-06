@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { clearToken } from "@/lib/auth";
+import Image from "next/image";
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -16,14 +17,18 @@ export default function Header() {
   return (
     <header className="bg-white border-b border-gray-200">
       <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
-        {/* Logo + Home */}
         <div
-          className="flex items-center space-x-2 cursor-pointer"
+          className="flex items-center cursor-pointer py-2"
           onClick={() => router.push("/dashboard")}
         >
-          <span className="font-semibold text-gray-900 text-lg">
-            CMD UnliFiberMax
-          </span>
+          <Image
+            src="/logo.jpg"
+            alt="CMD UnliFiberMax"
+            width={160}
+            height={48}
+            className="h-8 w-auto sm:h-9"
+            priority
+          />
         </div>
 
         {/* Desktop Navigation */}
