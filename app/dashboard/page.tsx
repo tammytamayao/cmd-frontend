@@ -40,6 +40,7 @@ function DashboardInner() {
           <AmountDueCard
             amountDue={user.amount_due ?? 0}
             dueOn={user.due_on ?? null}
+            billingStatus={user.latest_billing?.status ?? null}
             onMakePayment={() => router.push(`/payment?subscriber=${user.id}`)}
           />
         </div>

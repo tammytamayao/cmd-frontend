@@ -129,6 +129,10 @@ export type CurrentUser = {
   due_on: string | null;
   zone: string;
   date_installed: string | null;
+  latest_billing?: {
+    id: number;
+    status: string;
+  } | null;
 };
 
 export type HistoryTab = "bills" | "payments";

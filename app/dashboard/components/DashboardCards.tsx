@@ -26,10 +26,12 @@ export function AccountDetailsCard({
 export function AmountDueCard({
   amountDue,
   dueOn,
+  billingStatus,
   onMakePayment,
 }: {
   amountDue: number;
   dueOn: string | null;
+  billingStatus: string | null;
   onMakePayment: () => void;
 }) {
   const dueDate = (() => {
@@ -45,7 +47,7 @@ export function AmountDueCard({
           {formatCurrency(amountDue ?? 0)}
         </p>
 
-        {dueDate && (
+        {dueDate && billingStatus !== "paid" && (
           <p className="text-sm text-orange-600 mt-3">Due by {dueDate}</p>
         )}
       </div>
