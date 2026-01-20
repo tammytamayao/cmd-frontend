@@ -1,8 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AdminModal } from "@/app/components/admin/AdminModal";
-import { SelectDropdown } from "@/app/components/ui/SelectDropdown";
+import { AdminSearchInput } from "@/app/components/admin/AdminSearchInput";
+import { useDebounce } from "@/app/hooks/useDebounce";
+
 import { fetchAllSubscribers, createAdminBilling } from "@/lib/api";
 import type {
   AdminBilling,
@@ -23,6 +25,9 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
   const [subscribers, setSubscribers] = useState<SubscriberOption[]>([]);
   const [subscriberId, setSubscriberId] = useState<number | null>(null);
 
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 350);
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -30,12 +35,11 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
   const [status, setStatus] = useState<UiStatus>("Unpaid");
 
   const [loadingSubs, setLoadingSubs] = useState(false);
-  const [subsPage, setSubsPage] = useState(1);
-  const [subsHasMore, setSubsHasMore] = useState(true);
-  const [loadingMoreSubs, setLoadingMoreSubs] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [resultsOpen, setResultsOpen] = useState(false);
 
   // Reset when opening
   useEffect(() => {
@@ -44,6 +48,7 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
     setSubscribers([]);
     setSubscriberId(null);
 
+    setSearch("");
     setStartDate("");
     setEndDate("");
     setDueDate("");
@@ -52,23 +57,23 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
 
     setError(null);
     setSaving(false);
-
-    setSubsPage(1);
-    setSubsHasMore(true);
-    setLoadingMoreSubs(false);
+    setLoadingSubs(false);
+    setResultsOpen(false);
   }, [open]);
 
-  // Initial subscriber load
+  // Load subscribers based on search
   useEffect(() => {
     if (!open) return;
 
-    let alive = true;
+    let cancelled = false;
     setLoadingSubs(true);
 
     (async () => {
       try {
-        const res = await fetchAllSubscribers(1);
-        if (!alive) return;
+        // assuming fetchAllSubscribers(page, token?, query?)
+        const res = await fetchAllSubscribers(1, undefined, debouncedSearch);
+
+        if (cancelled) return;
 
         const opts: SubscriberOption[] = (res.data ?? []).map(
           (s: AdminSubscriber) => ({
@@ -77,60 +82,40 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
             label: `${s.serial_number ?? "—"} — ${s.last_name ?? ""}, ${
               s.first_name ?? ""
             }`.trim(),
-          })
+          }),
         );
 
         setSubscribers(opts);
-        setSubsPage(1);
-        setSubsHasMore(res.meta.page < res.meta.total_pages);
+
+        // If you wanted to auto-clear selection when not in results
+        // you could keep this, but since we "lock" once selected and stop
+        // searching, this won't normally fire after selection.
+        if (subscriberId && !opts.some((s) => s.id === subscriberId)) {
+          // optional: comment out if you *never* want auto-clearing
+          // setSubscriberId(null);
+        }
       } catch (e) {
-        if (!alive) return;
-        setError(
-          e instanceof Error ? e.message : "Failed to load subscribers."
-        );
+        if (!cancelled) {
+          setError(
+            e instanceof Error ? e.message : "Failed to load subscribers.",
+          );
+        }
       } finally {
-        if (alive) setLoadingSubs(false);
+        if (!cancelled) setLoadingSubs(false);
       }
     })();
 
     return () => {
-      alive = false;
+      cancelled = true;
     };
-  }, [open]);
-
-  const loadMoreSubscribers = useCallback(async () => {
-    if (!open) return;
-    if (loadingSubs || loadingMoreSubs || !subsHasMore) return;
-
-    setLoadingMoreSubs(true);
-    const nextPage = subsPage + 1;
-
-    try {
-      const res = await fetchAllSubscribers(nextPage);
-      const opts: SubscriberOption[] = (res.data ?? []).map(
-        (s: AdminSubscriber) => ({
-          id: s.id,
-          serial_number: s.serial_number,
-          label: `${s.serial_number ?? "—"} — ${s.last_name ?? ""}, ${
-            s.first_name ?? ""
-          }`.trim(),
-        })
-      );
-
-      setSubscribers((prev) => [...prev, ...opts]);
-      setSubsPage(nextPage);
-      setSubsHasMore(nextPage < res.meta.total_pages);
-    } catch {
-      setSubsHasMore(false);
-    } finally {
-      setLoadingMoreSubs(false);
-    }
-  }, [open, loadingSubs, loadingMoreSubs, subsHasMore, subsPage]);
+  }, [open, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const selectedSubscriberLabel = useMemo(() => {
     if (!subscriberId) return null;
     return subscribers.find((s) => s.id === subscriberId)?.label ?? null;
   }, [subscribers, subscriberId]);
+
+  const isSubscriberSelected = !!subscriberId && !!selectedSubscriberLabel;
 
   const normalizedStatus: "paid" | "unpaid" =
     status === "Paid" ? "paid" : "unpaid";
@@ -171,12 +156,23 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
       onClose();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to create billing."
+        err instanceof Error ? err.message : "Failed to create billing.",
       );
     } finally {
       setSaving(false);
     }
   };
+
+  const handleClearSelection = () => {
+    setSubscriberId(null);
+    setSearch("");
+    setResultsOpen(false);
+  };
+
+  const inputValue =
+    isSubscriberSelected && selectedSubscriberLabel
+      ? selectedSubscriberLabel
+      : search;
 
   return (
     <AdminModal
@@ -217,30 +213,95 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
           </div>
         )}
 
-        {/* Subscriber */}
+        {/* Subscriber search */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-gray-700">
             Subscriber
           </label>
-          <SelectDropdown<number>
-            value={subscriberId}
-            options={subscribers.map((s) => s.id)}
-            onChange={(id) => setSubscriberId(id)}
-            placeholder={
-              loadingSubs ? "Loading subscribers..." : "Select subscriber"
-            }
-            getLabel={(id) =>
-              subscribers.find((s) => s.id === id)?.label ?? String(id)
-            }
-            onLoadMore={loadMoreSubscribers}
-            hasMore={subsHasMore}
-            loadingMore={loadingMoreSubs}
-          />
-          {selectedSubscriberLabel && (
-            <p className="text-[11px] text-gray-400">
-              Creating billing for: {selectedSubscriberLabel}
-            </p>
-          )}
+
+          <div
+            className="relative"
+            onFocus={() => {
+              if (!isSubscriberSelected) setResultsOpen(true);
+            }}
+            onBlur={(e) => {
+              // close when focus leaves the whole container
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setResultsOpen(false);
+              }
+            }}
+          >
+            <AdminSearchInput
+              value={inputValue}
+              onChange={(val: string) => {
+                if (isSubscriberSelected) return; // ignore typing when locked
+                setSearch(val);
+              }}
+              placeholder={
+                isSubscriberSelected
+                  ? undefined
+                  : "Search subscriber number, name, address…"
+              }
+              isDisabled={isSubscriberSelected}
+            />
+
+            {isSubscriberSelected && (
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  // prevent blur before click
+                  e.preventDefault();
+                }}
+                onClick={handleClearSelection}
+                className="absolute inset-y-0 right-2 my-auto text-[11px] px-2 py-1 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200"
+              >
+                Clear
+              </button>
+            )}
+
+            {/* Dropdown only when NO subscriber selected */}
+            {resultsOpen && !isSubscriberSelected && (
+              <div className="absolute left-0 right-0 top-full mt-1 max-h-52 overflow-y-auto border border-gray-200 rounded-md bg-white shadow-lg z-20">
+                {loadingSubs ? (
+                  <div className="px-3 py-2 text-xs text-gray-400">
+                    Searching subscribers…
+                  </div>
+                ) : subscribers.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-gray-400">
+                    {debouncedSearch
+                      ? "No subscribers match your search."
+                      : "Start typing to search for a subscriber."}
+                  </div>
+                ) : (
+                  <ul className="divide-y divide-gray-100">
+                    {subscribers.map((s) => (
+                      <li
+                        key={s.id}
+                        onMouseDown={(e) => {
+                          // prevent blur before click
+                          e.preventDefault();
+                          setSubscriberId(s.id);
+                          setResultsOpen(false);
+                        }}
+                        className={`px-3 py-2 text-xs cursor-pointer hover:bg-blue-50 ${
+                          subscriberId === s.id ? "bg-blue-50" : ""
+                        }`}
+                      >
+                        <div className="font-medium text-gray-800">
+                          {s.label}
+                        </div>
+                        {s.serial_number && (
+                          <div className="text-[10px] text-gray-400">
+                            Serial: {s.serial_number}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Start / End */}
@@ -289,14 +350,20 @@ export function CreateBillingModal({ open, onClose, onCreated }: Props) {
           {/* Status */}
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-700">Status</label>
-            <SelectDropdown<string>
+            <select
               value={status}
-              options={[...STATUS_OPTIONS]}
-              onChange={(v) => setStatus(v as UiStatus)}
-              placeholder="Select status"
-            />
+              onChange={(e) => setStatus(e.target.value as UiStatus)}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            >
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+
         {/* Amount */}
         <div className="flex flex-col gap-1">
           <label className="text-xs font-medium text-gray-700">Amount</label>

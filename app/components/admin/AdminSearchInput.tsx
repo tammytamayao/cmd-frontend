@@ -4,12 +4,14 @@ type AdminSearchInputProps = {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  isDisabled?: boolean;
 };
 
 export function AdminSearchInput({
   value,
   onChange,
   placeholder = "Search…",
+  isDisabled = false,
 }: AdminSearchInputProps) {
   return (
     <div className="relative">
@@ -17,7 +19,8 @@ export function AdminSearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-[320px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-[400px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        disabled={isDisabled}
       />
       {value.trim().length > 0 && (
         <button
