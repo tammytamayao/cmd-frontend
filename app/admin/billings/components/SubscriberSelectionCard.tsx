@@ -1,4 +1,3 @@
-// app/admin/billings/multiple/components/SubscriberSelectionCard.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -22,25 +21,43 @@ export function SubscriberSelectionCard(props: {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 350);
 
-  const [loadingSubs, setLoadingSubs] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [resultsOpen, setResultsOpen] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
   const selectedIds = useMemo(
     () => new Set(selected.map((s) => s.id)),
     [selected],
   );
 
+  // Reset list when dropdown opens or search changes
+  useEffect(() => {
+    if (!resultsOpen) return;
+    setPage(1);
+  }, [resultsOpen, debouncedSearch]);
+
+  // Fetch subscribers when open + page changes
   useEffect(() => {
     if (!resultsOpen) return;
 
     let cancelled = false;
-    setLoadingSubs(true);
-    setError(null);
 
-    (async () => {
+    const run = async () => {
+      const isFirstPage = page === 1;
+
+      if (isFirstPage) {
+        setLoading(true);
+        setError(null);
+      } else {
+        setLoadingMore(true);
+      }
+
       try {
-        const res = await fetchAllSubscribers(1, undefined, debouncedSearch);
+        const res = await fetchAllSubscribers(page, undefined, debouncedSearch);
 
         if (cancelled) return;
 
@@ -53,23 +70,28 @@ export function SubscriberSelectionCard(props: {
           }),
         );
 
-        setSubscribers(opts);
+        setSubscribers((prev) => (isFirstPage ? opts : [...prev, ...opts]));
+        setHasMore(res.meta?.total_pages ? page < res.meta.total_pages : false);
       } catch (e) {
-        if (!cancelled) {
-          setError(
-            e instanceof Error ? e.message : "Failed to load subscribers.",
-          );
-          setSubscribers([]);
-        }
-      } finally {
-        if (!cancelled) setLoadingSubs(false);
-      }
-    })();
+        if (cancelled) return;
 
+        setError(
+          e instanceof Error ? e.message : "Failed to load subscribers.",
+        );
+        if (page === 1) setSubscribers([]);
+        setHasMore(false);
+      } finally {
+        if (cancelled) return;
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    };
+
+    run();
     return () => {
       cancelled = true;
     };
-  }, [resultsOpen, debouncedSearch]);
+  }, [resultsOpen, page, debouncedSearch]);
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white p-5 space-y-4">
@@ -106,7 +128,7 @@ export function SubscriberSelectionCard(props: {
 
         {resultsOpen && (
           <div className="absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto border border-gray-200 rounded-md bg-white shadow-lg z-20">
-            {loadingSubs ? (
+            {loading ? (
               <div className="px-3 py-2 text-xs text-gray-400">
                 Loading subscribers…
               </div>
@@ -117,44 +139,64 @@ export function SubscriberSelectionCard(props: {
                   : "No subscribers found."}
               </div>
             ) : (
-              <ul className="divide-y divide-gray-100">
-                {subscribers.map((s) => {
-                  const alreadyAdded = selectedIds.has(s.id);
+              <>
+                <ul className="divide-y divide-gray-100">
+                  {subscribers.map((s) => {
+                    const alreadyAdded = selectedIds.has(s.id);
 
-                  return (
-                    <li
-                      key={s.id}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        if (alreadyAdded) return;
+                    return (
+                      <li
+                        key={s.id}
+                        onMouseDown={(e) => {
+                          // prevent blur before click
+                          e.preventDefault();
+                          if (alreadyAdded) return;
 
-                        onAdd({
-                          id: s.id,
-                          label: s.label,
-                          serial_number: s.serial_number,
-                        });
-                        setSearch("");
-                        setResultsOpen(true);
-                      }}
-                      className={[
-                        "px-3 py-2 text-xs",
-                        alreadyAdded
-                          ? "bg-gray-50 text-gray-400 cursor-not-allowed"
-                          : "cursor-pointer hover:bg-blue-50",
-                      ].join(" ")}
+                          onAdd({
+                            id: s.id,
+                            label: s.label,
+                            serial_number: s.serial_number,
+                          });
+
+                          // keep dropdown usable for adding more
+                          setSearch("");
+                          setPage(1);
+                          setResultsOpen(true);
+                        }}
+                        className={[
+                          "px-3 py-2 text-xs",
+                          alreadyAdded
+                            ? "bg-gray-50 text-gray-400 cursor-not-allowed"
+                            : "cursor-pointer hover:bg-blue-50",
+                        ].join(" ")}
+                      >
+                        <div className="font-medium">{s.label}</div>
+                        <div className="text-[10px] text-gray-400">
+                          {alreadyAdded
+                            ? "Already added"
+                            : s.serial_number
+                              ? `Serial: ${s.serial_number}`
+                              : ""}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {hasMore && (
+                  <div className="border-t border-gray-100 p-2">
+                    <button
+                      type="button"
+                      disabled={loadingMore}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => setPage((p) => p + 1)}
+                      className="w-full rounded-md bg-gray-50 hover:bg-gray-100 text-xs text-gray-700 px-3 py-2 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                      <div className="font-medium">{s.label}</div>
-                      <div className="text-[10px] text-gray-400">
-                        {alreadyAdded
-                          ? "Already added"
-                          : s.serial_number
-                            ? `Serial: ${s.serial_number}`
-                            : ""}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+                      {loadingMore ? "Loading…" : "Load more"}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
