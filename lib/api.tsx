@@ -36,7 +36,7 @@ export async function fetchCurrentUser(token?: string | null) {
 
 export async function fetchBillings(
   token?: string | null,
-  opts?: { year?: number; page?: number; perPage?: number }
+  opts?: { year?: number; page?: number; perPage?: number },
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -64,7 +64,7 @@ export async function fetchPayments(
     perPage?: number;
     status?: string;
     paymentMethod?: string;
-  }
+  },
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -156,7 +156,7 @@ export async function adminLogin(email: string, password: string) {
 export async function fetchAllSubscribers(
   page = 1,
   token?: string | null,
-  q?: string
+  q?: string,
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -200,7 +200,7 @@ export async function fetchAllSubscribers(
 export async function fetchAllPayments(
   page: number,
   token: string,
-  q?: string
+  q?: string,
 ) {
   const url = new URL(`${API_BASE}/api/admin/payments`);
   url.searchParams.set("page", String(page));
@@ -224,7 +224,7 @@ export async function fetchAllPayments(
 
 export async function fetchAdminPayment(
   id: number | string,
-  token?: string | null
+  token?: string | null,
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -250,7 +250,7 @@ export async function updateAdminPayment(
     reference_number?: string | null;
     invoice_number?: string | null;
   },
-  token?: string | null
+  token?: string | null,
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -292,7 +292,7 @@ export async function fetchAdminBillings(
   opts?: {
     subscriberId?: number | string;
     q?: string;
-  }
+  },
 ): Promise<{ data: AdminBilling[]; meta: PaginationMeta }> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -328,7 +328,7 @@ export async function fetchAdminBillings(
 /** Get a single billing (with subscriber attached) */
 export async function fetchAdminBilling(
   id: number | string,
-  token?: string | null
+  token?: string | null,
 ): Promise<{ data: AdminBilling }> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -358,7 +358,7 @@ export async function updateAdminBilling(
     due_date?: string | null;
     amount?: number;
   },
-  token?: string | null
+  token?: string | null,
 ): Promise<{ data: AdminBilling }> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -386,7 +386,7 @@ export async function updateAdminBilling(
 export async function fetchAdminBillingBatchSummary(
   group: "all" | "specific" = "all",
   subscriberIds?: (number | string)[],
-  token?: string | null
+  token?: string | null,
 ): Promise<{ group: string; accounts_selected: number; base_amount: number }> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -407,7 +407,7 @@ export async function fetchAdminBillingBatchSummary(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(
-      data.error || `admin billing batch summary failed: ${res.status}`
+      data.error || `admin billing batch summary failed: ${res.status}`,
     );
   }
 
@@ -432,7 +432,7 @@ export async function createAdminBillingBatch(
     adjustment_per_account?: number;
     adjustment_notes?: string | null;
   },
-  token?: string | null
+  token?: string | null,
 ): Promise<{
   group: string;
   accounts_selected: number;
@@ -453,7 +453,7 @@ export async function createAdminBillingBatch(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(
-      data.error || `admin billing batch create failed: ${res.status}`
+      data.error || `admin billing batch create failed: ${res.status}`,
     );
   }
 
@@ -466,7 +466,7 @@ export async function createAdminBillingBatch(
 
 export async function createAdminPayment(
   form: FormData,
-  token?: string | null
+  token?: string | null,
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -495,7 +495,7 @@ export async function fetchAdminBillingsBySubscriber(
     status?: string;
     page?: number;
     perPage?: number;
-  }
+  },
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -550,7 +550,7 @@ export async function createAdminSubscriber(
     package_speed?: number | null;
     requires_password_change?: boolean;
   },
-  token?: string | null
+  token?: string | null,
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -567,7 +567,7 @@ export async function createAdminSubscriber(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(
-      data.error || `admin subscriber create failed: ${res.status}`
+      data.error || `admin subscriber create failed: ${res.status}`,
     );
   }
   return data as { data: AdminSubscriber };
@@ -594,7 +594,7 @@ export async function updateAdminSubscriber(
     package_speed?: number | null;
     requires_password_change?: boolean;
   },
-  token?: string | null
+  token?: string | null,
 ) {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -611,7 +611,7 @@ export async function updateAdminSubscriber(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(
-      data.error || `admin subscriber update failed: ${res.status}`
+      data.error || `admin subscriber update failed: ${res.status}`,
     );
   }
   return data as { data: AdminSubscriber };
@@ -619,7 +619,7 @@ export async function updateAdminSubscriber(
 
 export async function fetchAdminSubscriber(
   id: number | string,
-  token?: string | null
+  token?: string | null,
 ): Promise<{ data: AdminSubscriber }> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -632,7 +632,7 @@ export async function fetchAdminSubscriber(
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(
-      data.error || `admin subscriber fetch failed: ${res.status}`
+      data.error || `admin subscriber fetch failed: ${res.status}`,
     );
   }
 
@@ -658,7 +658,7 @@ export async function createAdminBilling(
     adjustment?: number | null;
     adjustment_notes?: string | null;
   },
-  token?: string | null
+  token?: string | null,
 ): Promise<{ data: AdminBilling }> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -680,7 +680,7 @@ export async function createAdminBilling(
         ? `: ${data.details.join(", ")}`
         : "";
     throw new Error(
-      (data?.error || `admin billing create failed (${res.status})`) + details
+      (data?.error || `admin billing create failed (${res.status})`) + details,
     );
   }
 
@@ -690,7 +690,7 @@ export async function createAdminBilling(
 // api.ts
 export async function deleteAdminPayment(
   id: number,
-  token?: string | null
+  token?: string | null,
 ): Promise<void> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -710,7 +710,7 @@ export async function deleteAdminPayment(
 
 export async function deleteAdminBilling(
   id: number,
-  token?: string | null
+  token?: string | null,
 ): Promise<void> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -728,7 +728,7 @@ export async function deleteAdminBilling(
 
 export async function deleteAdminSubscriber(
   id: number,
-  token?: string | null
+  token?: string | null,
 ): Promise<void> {
   const t = token ?? getToken();
   if (!t) throw new Error("no token");
@@ -742,4 +742,63 @@ export async function deleteAdminSubscriber(
     const data = await res.json().catch(() => ({}));
     throw new Error(data.error || "Failed to delete subscriber");
   }
+}
+
+export async function fetchAdminMultipleBillingSummary(
+  subscriberIds: (number | string)[],
+  token?: string | null,
+  opts?: { billing_start?: string; billing_end?: string },
+) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const url = new URL(`${API_BASE}/api/admin/billings/multiple_summary`);
+  url.searchParams.set("subscriber_ids", subscriberIds.join(","));
+
+  if (opts?.billing_start)
+    url.searchParams.set("billing_start", opts.billing_start);
+  if (opts?.billing_end) url.searchParams.set("billing_end", opts.billing_end);
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${t}` },
+    cache: "no-store",
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok)
+    throw new Error(data.error || `multiple summary failed: ${res.status}`);
+  return data;
+}
+
+export async function createAdminMultipleBillings(
+  payload: {
+    subscriber_ids: number[];
+    billing_start: string;
+    billing_end: string;
+    due_date: string;
+    adjustment_per_account?: number;
+    adjustment_notes?: string;
+  },
+  token?: string | null,
+) {
+  const t = token ?? getToken();
+  if (!t) throw new Error("no token");
+
+  const res = await fetch(`${API_BASE}/api/admin/billings/multiple_create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${t}`,
+    },
+    cache: "no-store",
+    body: JSON.stringify({
+      ...payload,
+      subscriber_ids: payload.subscriber_ids.join(","), // backend parse_ids supports comma-separated
+    }),
+  });
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok)
+    throw new Error(data.error || `multiple create failed: ${res.status}`);
+  return data;
 }

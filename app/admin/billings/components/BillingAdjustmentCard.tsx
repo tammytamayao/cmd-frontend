@@ -11,6 +11,8 @@ export function BillingAdjustmentCard({
   onRemoveAdjustment,
   adjustments,
   formatPeso,
+  addDisabled = false,
+  validationError = null,
 }: BillingAdjustmentProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -26,6 +28,12 @@ export function BillingAdjustmentCard({
       </div>
 
       <div className="px-6 py-5 space-y-4 text-sm">
+        {validationError ? (
+          <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 px-3 py-2 rounded-md">
+            {validationError}
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]">
           <div>
             <label className="block text-xs font-medium text-gray-700">
@@ -58,6 +66,7 @@ export function BillingAdjustmentCard({
             <button
               type="button"
               onClick={onAddAdjustment}
+              disabled={addDisabled}
               className="w-full sm:w-auto inline-flex items-center justify-center rounded-lg border border-transparent px-4 py-2 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors mt-1"
             >
               Add

@@ -420,6 +420,7 @@ export type FinalizeRunProps = {
 };
 
 export type BillingRunSummaryProps = {
+  billingType: string;
   displayAccountsSelected: string;
   baseAmount: number;
   adjustmentsBatchTotal: number;
@@ -433,16 +434,22 @@ export type AdjustmentItem = {
   description: string;
   amount: number;
 };
-
 export type BillingAdjustmentProps = {
   adjustmentNotes: string;
   onAdjustmentNotesChange: (v: string) => void;
+
   adjAmount: string;
   onAdjAmountChange: (v: string) => void;
+
   onAddAdjustment: () => void;
   onRemoveAdjustment: (id: number) => void;
-  adjustments: AdjustmentItem[];
+
+  adjustments: { id: number; description: string; amount: number }[];
   formatPeso: (n: number) => string;
+
+  // ✅ new (optional) props
+  addDisabled?: boolean;
+  validationError?: string | null;
 };
 
 export type BillingConfigurationProps = {
@@ -473,4 +480,10 @@ export type AdminConfirmModalProps = {
   loading?: boolean;
 
   onConfirm: () => void;
+};
+
+export type SelectedSubscriber = {
+  id: number;
+  label: string;
+  serial_number?: string | null;
 };

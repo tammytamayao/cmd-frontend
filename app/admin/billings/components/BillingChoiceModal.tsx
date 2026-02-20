@@ -6,6 +6,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSingle: () => void;
+  onMultiple: () => void;
   onBatch: () => void;
 };
 
@@ -13,6 +14,7 @@ export function BillingChoiceModal({
   open,
   onClose,
   onSingle,
+  onMultiple,
   onBatch,
 }: Props) {
   return (
@@ -47,6 +49,17 @@ export function BillingChoiceModal({
             <div className="font-medium text-gray-900">Single billing</div>
             <div className="text-xs text-gray-500">
               Create one billing record for a subscriber.
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={onMultiple}
+            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-left hover:bg-gray-50 transition"
+          >
+            <div className="font-medium text-gray-900">Multiple billing</div>
+            <div className="text-xs text-gray-500">
+              Create billing records for multiple subscribers in one submission.
             </div>
           </button>
 

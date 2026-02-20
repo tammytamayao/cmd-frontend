@@ -50,7 +50,7 @@ export default function AdminBillingsPage() {
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedBilling, setSelectedBilling] = useState<AdminBilling | null>(
-    null
+    null,
   );
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
@@ -75,6 +75,11 @@ export default function AdminBillingsPage() {
   const openSingle = () => {
     setAddChoiceOpen(false);
     setCreateSingleOpen(true);
+  };
+
+  const openMultiple = () => {
+    setAddChoiceOpen(false);
+    router.push("/admin/billings/multiple");
   };
 
   useEffect(() => {
@@ -134,7 +139,7 @@ export default function AdminBillingsPage() {
       setSelectedBilling(res.data as AdminBilling);
     } catch (e) {
       setDetailsError(
-        e instanceof Error ? e.message : "Failed to load billing details"
+        e instanceof Error ? e.message : "Failed to load billing details",
       );
     } finally {
       setDetailsLoading(false);
@@ -169,7 +174,9 @@ export default function AdminBillingsPage() {
       } catch (e) {
         notify(
           "error",
-          e instanceof Error ? e.message : "Failed to load billing for editing."
+          e instanceof Error
+            ? e.message
+            : "Failed to load billing for editing.",
         );
       } finally {
         setPendingAction(null);
@@ -209,14 +216,14 @@ export default function AdminBillingsPage() {
         await deleteAdminBilling(billing.id, t);
 
         setBillings((prev) =>
-          prev ? prev.filter((x) => x.id !== billing.id) : prev
+          prev ? prev.filter((x) => x.id !== billing.id) : prev,
         );
 
         notify("success", "Billing deleted.");
       } catch (e) {
         notify(
           "error",
-          e instanceof Error ? e.message : "Failed to delete billing."
+          e instanceof Error ? e.message : "Failed to delete billing.",
         );
       }
     }
@@ -231,7 +238,7 @@ export default function AdminBillingsPage() {
     setBillings((prev) =>
       prev
         ? prev.map((b) => (b.id === updated.id ? { ...b, ...updated } : b))
-        : prev
+        : prev,
     );
     notify("success", "Billing updated.");
   };
@@ -308,6 +315,7 @@ export default function AdminBillingsPage() {
         open={addChoiceOpen}
         onClose={() => setAddChoiceOpen(false)}
         onSingle={openSingle}
+        onMultiple={openMultiple}
         onBatch={openBatch}
       />
 

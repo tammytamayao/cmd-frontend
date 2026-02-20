@@ -4,6 +4,7 @@ import { formatCurrency } from "@/lib/helpers";
 import { BillingRunSummaryProps } from "@/lib/types";
 
 export function BillingRunSummaryCard({
+  billingType,
   displayAccountsSelected,
   baseAmount,
   adjustmentsBatchTotal,
@@ -23,7 +24,7 @@ export function BillingRunSummaryCard({
         <div className="flex items-center justify-between rounded-xl bg-gray-50 px-3 py-2">
           <div className="text-xs text-gray-500">Billing Type</div>
           <div className="text-xs font-semibold text-gray-900">
-            Batch – All Subscribers
+            {billingType}
           </div>
         </div>
 
