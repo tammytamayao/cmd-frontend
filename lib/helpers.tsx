@@ -44,7 +44,7 @@ export function statusBadgeClasses(status: string): string {
 }
 
 export function normalizeBillingStatus(
-  s: string
+  s: string,
 ): "paid" | "overdue" | "unpaid" {
   const lower = s.toLowerCase();
   if (lower === "open" || lower === "unpaid") return "unpaid";
@@ -62,7 +62,7 @@ export function validate(
   mode: LoginMode,
   serialNumber: string,
   email: string,
-  password: string
+  password: string,
 ): ValidationResult {
   const pwd = password.trim();
   if (pwd.length < 6)
@@ -98,7 +98,7 @@ export function billingTone(status: string): "success" | "danger" | "neutral" {
 }
 
 export function paymentTone(
-  status: string
+  status: string,
 ): "success" | "danger" | "info" | "neutral" {
   const s = status.toLowerCase();
   if (s === "completed" || s === "paid") return "success";
@@ -175,8 +175,15 @@ export function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
 
-export function expectedPasswordForNow(now = new Date()) {
+export type PasswordMode = "edit" | "delete";
+
+export function expectedPasswordForNow(mode: PasswordMode, now = new Date()) {
   const mm = pad2(now.getMonth() + 1);
   const yyyy = String(now.getFullYear());
-  return `${mm}${yyyy}`;
+
+  // Edit: MMYYYY (e.g., Feb 2026 => 022026)
+  if (mode === "edit") return `${mm}${yyyy}`;
+
+  // Delete: YYYYMM (e.g., Feb 2026 => 202602)
+  return `${yyyy}${mm}`;
 }

@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import type { PasswordMode } from "@/lib/helpers";
 
 export type AdminSubscriber = {
   id: number;
@@ -11,7 +12,7 @@ export type AdminSubscriber = {
   zone: string | null;
   plan: string | null;
   brate: number | null;
-  package: string | null; // <- your DB schema says string
+  package: string | null;
   package_speed: number | null;
   date_installed: string | null;
   tvconnect?: boolean | null;
@@ -20,7 +21,6 @@ export type AdminSubscriber = {
   cas?: string | null;
   requires_password_change?: boolean | null;
 
-  // (keep these if you use them elsewhere)
   latest_billing_amount: number | null;
   latest_billing_due_date: string | null;
   latest_billing_status: string | null;
@@ -466,6 +466,7 @@ export type PasswordPromptModalProps = {
   onClose: () => void;
   onConfirmed: () => void;
   title?: string;
+  mode: PasswordMode;
 };
 
 export type AdminConfirmModalProps = {

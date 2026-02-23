@@ -35,6 +35,8 @@ type PendingAction =
   | { type: "delete"; billing: AdminBilling }
   | null;
 
+type PwMode = "edit" | "delete"; // ✅ NEW
+
 export default function AdminBillingsPage() {
   const [err, setErr] = useState<string | null>(null);
   const { notify } = useNotification();
@@ -66,6 +68,8 @@ export default function AdminBillingsPage() {
 
   const [pwOpen, setPwOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+
+  const [pwMode, setPwMode] = useState<PwMode>("edit"); // ✅ NEW
 
   const openBatch = () => {
     setAddChoiceOpen(false);
@@ -154,11 +158,13 @@ export default function AdminBillingsPage() {
 
   const requestEdit = (b: AdminBilling) => {
     setPendingAction({ type: "edit", billingId: b.id });
+    setPwMode("edit"); // ✅ NEW
     setPwOpen(true);
   };
 
   const requestDelete = (b: AdminBilling) => {
     setPendingAction({ type: "delete", billing: b });
+    setPwMode("delete"); // ✅ NEW
     setPwOpen(true);
   };
 
@@ -343,7 +349,6 @@ export default function AdminBillingsPage() {
         onUpdated={handleBillingUpdated}
       />
 
-      {/* ✅ Password Prompt first */}
       <PasswordPromptModal
         open={pwOpen}
         onClose={() => {
@@ -352,6 +357,7 @@ export default function AdminBillingsPage() {
         }}
         onConfirmed={proceedAfterPassword}
         title="Security Check"
+        mode={pwMode}
       />
 
       <ConfirmModal

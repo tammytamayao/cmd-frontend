@@ -24,13 +24,14 @@ import { useConfirm } from "@/app/hooks/useConfirm";
 import { useNotification } from "@/app/notification/NotificationProvider";
 import { ConfirmModal } from "@/app/components/ConfirmModal";
 
-// ✅ add this
 import { PasswordPromptModal } from "@/app/components/admin/PasswordPromptModal";
 
 type PendingAction =
   | { type: "edit"; subscriber: AdminSubscriber }
   | { type: "delete"; subscriber: AdminSubscriber }
   | null;
+
+type PwMode = "edit" | "delete";
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null);
@@ -52,9 +53,9 @@ export default function AdminDashboardPage() {
   const [viewLoading, setViewLoading] = useState(false);
   const [viewErr, setViewErr] = useState<string | null>(null);
 
-  // ✅ Password modal state
   const [pwOpen, setPwOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+  const [pwMode, setPwMode] = useState<PwMode>("edit");
 
   useEffect(() => {
     setPage(1);
@@ -117,19 +118,18 @@ export default function AdminDashboardPage() {
     }
   }
 
-  // ✅ request edit (password first)
   const requestEditSubscriber = (s: AdminSubscriber) => {
     setPendingAction({ type: "edit", subscriber: s });
+    setPwMode("edit");
     setPwOpen(true);
   };
 
-  // ✅ request delete (password first)
   const requestDeleteSubscriber = (s: AdminSubscriber) => {
     setPendingAction({ type: "delete", subscriber: s });
+    setPwMode("delete");
     setPwOpen(true);
   };
 
-  // ✅ run action after password confirmed
   const proceedAfterPassword = async () => {
     const t = getToken();
     if (!t) {
@@ -139,14 +139,12 @@ export default function AdminDashboardPage() {
     }
     if (!pendingAction) return;
 
-    // EDIT
     if (pendingAction.type === "edit") {
       setEditing(pendingAction.subscriber);
       setPendingAction(null);
       return;
     }
 
-    // DELETE
     if (pendingAction.type === "delete") {
       const s = pendingAction.subscriber;
       setPendingAction(null);
@@ -185,7 +183,7 @@ export default function AdminDashboardPage() {
       } catch (e) {
         notify(
           "error",
-          e instanceof Error ? e.message : "Failed to delete subscriber."
+          e instanceof Error ? e.message : "Failed to delete subscriber.",
         );
       }
     }
@@ -247,8 +245,8 @@ export default function AdminDashboardPage() {
               meta={hasRows ? meta : null}
               onPageChange={setPage}
               onRowClick={openDetails}
-              onEdit={requestEditSubscriber} // ✅ gated
-              onDelete={requestDeleteSubscriber} // ✅ gated
+              onEdit={requestEditSubscriber}
+              onDelete={requestDeleteSubscriber}
             />
           </AdminTableCard>
         </section>
@@ -271,7 +269,9 @@ export default function AdminDashboardPage() {
           onClose={() => setEditing(null)}
           onUpdated={(updated: AdminSubscriber) => {
             setSubs((prev) =>
-              prev ? prev.map((x) => (x.id === updated.id ? updated : x)) : prev
+              prev
+                ? prev.map((x) => (x.id === updated.id ? updated : x))
+                : prev,
             );
 
             setViewing((prev) => (prev?.id === updated.id ? updated : prev));
@@ -280,7 +280,6 @@ export default function AdminDashboardPage() {
         />
       </main>
 
-      {/* ✅ Password Prompt first */}
       <PasswordPromptModal
         open={pwOpen}
         onClose={() => {
@@ -289,6 +288,7 @@ export default function AdminDashboardPage() {
         }}
         onConfirmed={proceedAfterPassword}
         title="Security Check"
+        mode={pwMode}
       />
 
       <ConfirmModal

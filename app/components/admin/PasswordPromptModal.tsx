@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { AdminModal } from "@/app/components/admin/AdminModal";
 import { PasswordPromptModalProps } from "@/lib/types";
 import { expectedPasswordForNow } from "@/lib/helpers";
@@ -8,18 +8,20 @@ import { expectedPasswordForNow } from "@/lib/helpers";
 function PasswordPromptModalInner({
   onClose,
   onConfirmed,
-}: Omit<PasswordPromptModalProps, "open">) {
+  mode,
+}: Pick<PasswordPromptModalProps, "onClose" | "onConfirmed" | "mode">) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-
-  const expected = useMemo(() => expectedPasswordForNow(), []);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!password.trim()) return setError("Password is required.");
-    if (password.trim() !== expected) return setError("Incorrect password.");
+    const pw = password.trim();
+    if (!pw) return setError("Password is required.");
+
+    const expected = expectedPasswordForNow(mode);
+    if (pw !== expected) return setError("Incorrect password.");
 
     onConfirmed();
     onClose();
@@ -53,12 +55,10 @@ export function PasswordPromptModal({
   onClose,
   onConfirmed,
   title = "Security Check",
+  mode,
 }: PasswordPromptModalProps) {
-  const modalKey = open ? "open" : "closed";
-
   return (
     <AdminModal
-      key={modalKey}
       open={open}
       onClose={onClose}
       title={title}
@@ -86,7 +86,7 @@ export function PasswordPromptModal({
         <PasswordPromptModalInner
           onClose={onClose}
           onConfirmed={onConfirmed}
-          title={title}
+          mode={mode}
         />
       )}
     </AdminModal>

@@ -31,6 +31,8 @@ type PendingAction =
   | { type: "delete"; payment: AdminPayment }
   | null;
 
+type PwMode = "edit" | "delete"; // ✅ NEW
+
 export default function AdminPaymentsPage() {
   const token = getToken();
   const { notify } = useNotification();
@@ -47,7 +49,7 @@ export default function AdminPaymentsPage() {
 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<AdminPayment | null>(
-    null
+    null,
   );
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
@@ -61,6 +63,8 @@ export default function AdminPaymentsPage() {
 
   const [pwOpen, setPwOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
+
+  const [pwMode, setPwMode] = useState<PwMode>("edit");
 
   useEffect(() => {
     setPage(1);
@@ -109,7 +113,7 @@ export default function AdminPaymentsPage() {
       setSelectedPayment(res.data as AdminPayment);
     } catch (e) {
       setDetailsError(
-        e instanceof Error ? e.message : "Failed to load payment details"
+        e instanceof Error ? e.message : "Failed to load payment details",
       );
     } finally {
       setDetailsLoading(false);
@@ -118,11 +122,13 @@ export default function AdminPaymentsPage() {
 
   const requestEdit = (p: AdminPayment) => {
     setPendingAction({ type: "edit", paymentId: p.id });
+    setPwMode("edit");
     setPwOpen(true);
   };
 
   const requestDelete = (p: AdminPayment) => {
     setPendingAction({ type: "delete", payment: p });
+    setPwMode("delete");
     setPwOpen(true);
   };
 
@@ -137,7 +143,9 @@ export default function AdminPaymentsPage() {
       } catch (e) {
         notify(
           "error",
-          e instanceof Error ? e.message : "Failed to load payment for editing."
+          e instanceof Error
+            ? e.message
+            : "Failed to load payment for editing.",
         );
       } finally {
         setPendingAction(null);
@@ -178,14 +186,14 @@ export default function AdminPaymentsPage() {
         await deleteAdminPayment(payment.id, token);
 
         setPayments((prev) =>
-          prev ? prev.filter((x) => x.id !== payment.id) : prev
+          prev ? prev.filter((x) => x.id !== payment.id) : prev,
         );
 
         notify("success", "Payment deleted.");
       } catch (e) {
         notify(
           "error",
-          e instanceof Error ? e.message : "Failed to delete payment."
+          e instanceof Error ? e.message : "Failed to delete payment.",
         );
       }
     }
@@ -206,7 +214,7 @@ export default function AdminPaymentsPage() {
     setPayments((prev) =>
       prev
         ? prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p))
-        : prev
+        : prev,
     );
     notify("success", "Payment updated.");
   };
@@ -268,8 +276,8 @@ export default function AdminPaymentsPage() {
               meta={hasRows ? meta : null}
               onPageChange={setPage}
               onRowClick={(p) => handleViewDetails(p.id)}
-              onEdit={(p) => requestEdit(p)}
-              onDelete={(p) => requestDelete(p)}
+              onEdit={(p) => requestEdit(p)} // ✅ gated
+              onDelete={(p) => requestDelete(p)} // ✅ gated
             />
           </AdminTableCard>
         </section>
@@ -307,6 +315,7 @@ export default function AdminPaymentsPage() {
         }}
         onConfirmed={proceedAfterPassword}
         title="Security Check"
+        mode={pwMode} // ✅ NEW (edit => 022026, delete => 202602)
       />
 
       <ConfirmModal
