@@ -111,8 +111,8 @@ export default function LoginPage() {
                 ? "Logging in..."
                 : "Logging in as staff..."
               : isSubscriber
-              ? "Log In"
-              : "Log In as Staff"}
+                ? "Log In"
+                : "Log In as Staff"}
           </button>
         </form>
       </div>
